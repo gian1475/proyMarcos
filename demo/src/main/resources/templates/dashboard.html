@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: layout('dashboard', 'Dashboard / Reportes')}">
+<body>
+<div th:fragment="content">
+
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">Dashboard / Reportes</h1>
+            <p class="page-subtitle">Vista consolidada a nivel nacional y métricas en tiempo real</p>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <div class="dropdown">
+                <button class="date-filter-pill dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                    <i class="bi bi-geo-alt text-primary"></i> Sede: Todas las Sedes
+                </button>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item active" href="#">Todas las Sedes</a></li>
+                    <li th:each="t : ${terminales}"><a class="dropdown-item" href="#" th:text="${t.nombreTerminal}">Terminal</a></li>
+                </ul>
+            </div>
+            <div class="date-filter-pill">
+                <i class="bi bi-calendar3"></i> 26/05/2026 - 26/05/2026
+            </div>
+            <a th:href="@{/admin/reportes/grafico1}" class="date-filter-pill text-decoration-none">
+                <i class="bi bi-bar-chart-line"></i> Más reportes
+            </a>
+        </div>
+    </div>
+
+    <!-- KPIs -->
+    <div class="stat-cards-grid">
+        <div class="chaski-stat-card">
+            <div class="stat-icon-circle stat-icon-navy"><i class="bi bi-currency-dollar"></i></div>
+            <div class="stat-content">
+                <div class="stat-title">Ingresos Totales (S/)</div>
+                <div class="stat-number" th:text="${ingresosTotales}">256,780.50</div>
+                <div class="stat-trend"><i class="bi bi-arrow-up-short"></i> 18.6% vs. mes anterior</div>
+            </div>
+        </div>
+        <div class="chaski-stat-card">
+            <div class="stat-icon-circle stat-icon-green"><i class="bi bi-ticket-perforated"></i></div>
+            <div class="stat-content">
+                <div class="stat-title">Total Pasajes Vendidos</div>
+                <div class="stat-number" th:text="${pasajesVendidos}">2,842</div>
+                <div class="stat-trend"><i class="bi bi-arrow-up-short"></i> 12.4% vs. mes anterior</div>
+            </div>
+        </div>
+        <div class="chaski-stat-card">
+            <div class="stat-icon-circle stat-icon-purple"><i class="bi bi-pie-chart"></i></div>
+            <div class="stat-content">
+                <div class="stat-title">Ocupación Promedio (%)</div>
+                <div class="stat-number" th:text="|${ocupacionPromedio}%|">84.7%</div>
+                <div class="stat-trend"><i class="bi bi-arrow-up-short"></i> 6.3% vs. mes anterior</div>
+            </div>
+        </div>
+        <div class="chaski-stat-card">
+            <div class="stat-icon-circle stat-icon-amber"><i class="bi bi-geo-alt-fill"></i></div>
+            <div class="stat-content">
+                <div class="stat-title">Ruta Más Vendida</div>
+                <div class="stat-number sm" th:text="${rutaMasVendida}">LIMA → PIURA</div>
+                <div class="stat-trend text-muted-custom" th:text="|${pasajesRutaTop} pasajes vendidos|">1,245 pasajes vendidos</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- GRÁFICOS -->
+    <div class="chart-cards-grid">
+        <div class="chaski-chart-card">
+            <div class="chart-card-header">
+                <h2 class="chart-card-title">Ventas por Método de Pago</h2>
+                <span class="badge bg-light text-dark border">Este mes</span>
+            </div>
+            <div class="chart-canvas-container">
+                <canvas id="ventasMetodoPagoChart"></canvas>
+            </div>
+            <div class="d-flex justify-content-center gap-4 mt-3 pt-2 border-top">
+                <div class="d-flex align-items-center gap-2" th:each="metodo, i : ${ventasPorMetodo}">
+                    <span class="legend-dot" th:style="|background-color: ${coloresGrafico[i.index]}|"></span>
+                    <small class="fw-semibold text-secondary" th:text="${metodo.key}">Yape</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="chaski-chart-card">
+            <div class="chart-card-header">
+                <h2 class="chart-card-title">Distribución de Comprobantes</h2>
+                <span class="badge bg-light text-dark border">Este mes</span>
+            </div>
+            <div class="chart-canvas-container">
+                <canvas id="distribucionComprobantesChart"></canvas>
+            </div>
+            <div class="d-flex justify-content-center gap-4 mt-3 pt-2 border-top">
+                <div class="d-flex align-items-center gap-2" th:each="comp, i : ${comprobantes}">
+                    <span class="legend-dot round" th:style="|background-color: ${coloresGrafico[i.index]}|"></span>
+                    <small class="fw-semibold text-secondary"
+                           th:text="|${comp.key}: ${#numbers.formatInteger(comp.value, 1, 'COMMA')} (${#numbers.formatDecimal(comp.value * 100.0 / totalComprobantes, 1, 1)}%)|">Boletas</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ACCESOS RÁPIDOS -->
+    <div class="row g-3">
+        <div class="col-md-3">
+            <a th:href="@{/admin/buses}" class="text-decoration-none">
+                <div class="chaski-stat-card">
+                    <div class="stat-icon-circle sm stat-icon-navy"><i class="bi bi-bus-front"></i></div>
+                    <div>
+                        <div class="stat-title">Flota de Buses</div>
+                        <div class="fw-bold text-dark" th:text="|${totalBuses} Buses|">8 Buses</div>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-3">
+            <a th:href="@{/admin/viajes}" class="text-decoration-none">
+                <div class="chaski-stat-card">
+                    <div class="stat-icon-circle sm stat-icon-green"><i class="bi bi-signpost-2"></i></div>
+                    <div>
+                        <div class="stat-title">Viajes Programados</div>
+                        <div class="fw-bold text-dark" th:text="|${totalViajes} Salidas|">8 Salidas</div>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-3">
+            <a th:href="@{/admin/choferes}" class="text-decoration-none">
+                <div class="chaski-stat-card">
+                    <div class="stat-icon-circle sm stat-icon-purple"><i class="bi bi-people"></i></div>
+                    <div>
+                        <div class="stat-title">Usuarios y Choferes</div>
+                        <div class="fw-bold text-dark" th:text="|${totalChoferes} Registrados|">6 Registrados</div>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-3">
+            <a th:href="@{/admin/terminales}" class="text-decoration-none">
+                <div class="chaski-stat-card">
+                    <div class="stat-icon-circle sm stat-icon-amber"><i class="bi bi-building"></i></div>
+                    <div>
+                        <div class="stat-title">Terminales</div>
+                        <div class="fw-bold text-dark" th:text="|${#lists.size(terminales)} Sedes|">8 Sedes</div>
+                    </div>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        document.addEventListener('DOMContentLoaded', function () {
+            const colores = /*[[${coloresGrafico}]]*/ [];
+            const ventas = /*[[${ventasPorMetodo}]]*/ {};
+            const comprobantes = /*[[${comprobantes}]]*/ {};
+            const totalComprobantes = /*[[${totalComprobantes}]]*/ 0;
+            const soles = v => 'S/ ' + v.toLocaleString('es-PE', { minimumFractionDigits: 2 });
+
+            // Gráfico 1: Ventas por método de pago (barras)
+            new Chart(document.getElementById('ventasMetodoPagoChart'), {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(ventas),
+                    datasets: [{
+                        label: 'Ventas (S/)',
+                        data: Object.values(ventas),
+                        backgroundColor: colores,
+                        borderRadius: 6,
+                        barThickness: 54
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: { callbacks: { label: ctx => soles(ctx.raw) } }
+                    },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: '#EDEBE6' }, ticks: { callback: v => 'S/ ' + v.toLocaleString('es-PE') } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+
+            // Gráfico 2: Distribución de comprobantes (doughnut con total al centro)
+            const textoCentral = {
+                id: 'textoCentral',
+                beforeDraw(chart) {
+                    const { ctx, width, height } = chart;
+                    ctx.save();
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.font = "600 0.85rem 'Inter', sans-serif";
+                    ctx.fillStyle = '#6B6B6B';
+                    ctx.fillText('Total', width / 2, height / 2 - 12);
+                    ctx.font = "800 1.55rem 'Inter', sans-serif";
+                    ctx.fillStyle = '#0D1B2A';
+                    ctx.fillText(totalComprobantes.toLocaleString('en-US'), width / 2, height / 2 + 12);
+                    ctx.restore();
+                }
+            };
+
+            new Chart(document.getElementById('distribucionComprobantesChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(comprobantes),
+                    datasets: [{
+                        data: Object.values(comprobantes),
+                        backgroundColor: colores,
+                        borderWidth: 3,
+                        borderColor: '#ffffff',
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '72%',
+                    plugins: { legend: { display: false } }
+                },
+                plugins: [textoCentral]
+            });
+        });
+    </script>
+
+</div>
+</body>
+</html>

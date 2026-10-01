@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Líderes en Transporte Interprovincial de Alta Gama')}"></head>
+<body>
+
+    <header th:replace="~{fragments/componentes :: portalTopbar(true)}"></header>
+
+    <!-- HERO -->
+    <section class="portal-hero">
+        <div class="container">
+            <h1 class="portal-hero-title">Líderes en transporte interprovincial de alta gama</h1>
+            <p class="portal-hero-subtitle">Seguridad de vanguardia, tecnología de rastreo GPS y la flota más moderna del Perú.</p>
+        </div>
+    </section>
+
+    <!-- BUSCADOR -->
+    <div class="container">
+        <div class="portal-search-box">
+            <form th:action="@{/portal/buscar}" method="get">
+                <div class="portal-search-grid">
+                    <div>
+                        <label class="form-label small fw-bold text-muted mb-1">
+                            <i class="bi bi-geo-alt-fill text-warning me-1"></i> Origen
+                        </label>
+                        <select class="form-select border-2" name="origen" required>
+                            <option value="LIMA" selected>LIMA (Plaza Norte / 28 de Julio)</option>
+                            <option value="PIURA">PIURA (Sánchez Cerro)</option>
+                            <option value="TRUJILLO">TRUJILLO (América Sur)</option>
+                            <option value="CHICLAYO">CHICLAYO (Bolognesi)</option>
+                            <option value="CAJAMARCA">CAJAMARCA (Atahualpa)</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="form-label small fw-bold text-muted mb-1">
+                            <i class="bi bi-geo-alt-fill text-warning me-1"></i> Destino
+                        </label>
+                        <select class="form-select border-2" name="destino" required>
+                            <option value="CHICLAYO" selected>CHICLAYO (Bolognesi)</option>
+                            <option value="PIURA">PIURA (Sánchez Cerro)</option>
+                            <option value="TRUJILLO">TRUJILLO (América Sur)</option>
+                            <option value="LIMA">LIMA (Plaza Norte)</option>
+                            <option value="CAJAMARCA">CAJAMARCA (Atahualpa)</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="form-label small fw-bold text-muted mb-1">
+                            <i class="bi bi-calendar-event text-warning me-1"></i> Fecha de Salida
+                        </label>
+                        <input type="date" class="form-control border-2" name="fecha" value="2026-08-30" required>
+                    </div>
+
+                    <div>
+                        <button type="submit" class="btn-chaski-gold w-100 py-2 px-4 fs-6">
+                            <i class="bi bi-search"></i> BUSCAR PASAJES
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- NOSOTROS -->
+    <section class="container py-4 my-2" id="nosotros">
+        <div class="row g-5 align-items-center">
+            <div class="col-lg-7">
+                <span class="badge bg-warning text-dark fw-bold px-3 py-2 rounded-pill text-uppercase mb-3 portal-label">EXCELENCIA EN RUTA</span>
+                <h2 class="display-6 fw-bold text-dark mb-4 lh-sm">La nueva definición del transporte interprovincial en el Perú</h2>
+                <p class="text-secondary lead fs-6 mb-4 lh-lg">
+                    En <strong>Los Chaskis S.A.</strong> transformamos cada trayecto en una experiencia ejecutiva de nivel superior. Operamos con estándares internacionales de seguridad vial, monitoreo satelital en tiempo real con la SUTRAN y tripulantes altamente calificados para brindarte puntualidad milimétrica en cada itinerario.
+                </p>
+
+                <div class="row g-3 pt-2">
+                    <div class="col-sm-6">
+                        <div class="d-flex align-items-center gap-3">
+                            <i class="bi bi-shield-check text-warning fs-3"></i>
+                            <div>
+                                <strong class="d-block text-dark">Flota 100% Homologada</strong>
+                                <small class="text-muted">Chasis Scania y Volvo 2026</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="d-flex align-items-center gap-3">
+                            <i class="bi bi-award text-warning fs-3"></i>
+                            <div>
+                                <strong class="d-block text-dark">Certificación SUTRAN</strong>
+                                <small class="text-muted">Cero tolerancia a infracciones</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-5">
+                <div class="portal-panel-oscuro p-4 p-md-5 rounded-4 shadow-lg text-white">
+                    <h3 class="fw-bold text-warning fs-4 mb-4">Compromiso Los Chaskis</h3>
+                    <ul class="list-unstyled d-flex flex-column gap-3 mb-0">
+                        <li class="d-flex align-items-start gap-3">
+                            <i class="bi bi-check-circle-fill text-warning fs-5"></i>
+                            <div><strong class="fs-6">+3.5 Millones</strong> <span class="opacity-75 small">de pasajes emitidos sin contratiempos.</span></div>
+                        </li>
+                        <li class="d-flex align-items-start gap-3">
+                            <i class="bi bi-check-circle-fill text-warning fs-5"></i>
+                            <div><strong class="fs-6">99.8%</strong> <span class="opacity-75 small">de tasa de puntualidad comercial.</span></div>
+                        </li>
+                        <li class="d-flex align-items-start gap-3">
+                            <i class="bi bi-check-circle-fill text-warning fs-5"></i>
+                            <div><strong class="fs-6">Asistencia SUTRAN</strong> <span class="opacity-75 small">e indemnización integrada.</span></div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SERVICIOS -->
+    <section class="container py-5 my-3" id="servicios">
+        <div class="text-center mb-5">
+            <h2 class="fw-bold text-dark fs-2 mb-2">Nuestros Servicios de Transporte</h2>
+            <p class="text-muted">Flota moderna con amortiguación neumática y asientos ergonómicos</p>
+        </div>
+
+        <div class="row g-4 justify-content-center">
+            <div class="col-lg-4 col-md-6">
+                <div class="bg-white p-4 rounded-4 shadow-sm border h-100 text-center d-flex flex-column justify-content-between">
+                    <div>
+                        <span class="badge bg-dark text-white text-uppercase px-3 py-2 fw-bold mb-3 portal-label">SEMI EJECUTIVO</span>
+                        <h4 class="fw-bold text-dark fs-4 mb-3">Chaski Económico 140°</h4>
+                        <p class="text-muted small mb-4">Reclinación estándar de 140°, conectores USB por asiento, climatización y GPS activo.</p>
+                    </div>
+                    <strong class="pt-3 border-top fs-5 text-dark">Desde S/ 90.00</strong>
+                </div>
+            </div>
+
+            <div class="col-lg-4 col-md-6">
+                <div class="bg-white p-4 rounded-4 shadow-sm portal-card-destacada h-100 text-center d-flex flex-column justify-content-between">
+                    <div>
+                        <span class="badge bg-warning text-dark text-uppercase px-3 py-2 fw-bold mb-3 portal-label">MÁS POPULAR</span>
+                        <h4 class="fw-bold text-dark fs-4 mb-3">Chaski Confort 160°</h4>
+                        <p class="text-muted small mb-4">Asientos Cama 160° en formato 2×1, pantallas individuales, snack a bordo y WiFi.</p>
+                    </div>
+                    <strong class="pt-3 border-top fs-5 text-dark">Desde S/ 130.00</strong>
+                </div>
+            </div>
+
+            <div class="col-lg-4 col-md-6">
+                <div class="bg-white p-4 rounded-4 shadow-sm border h-100 text-center d-flex flex-column justify-content-between">
+                    <div>
+                        <span class="badge bg-dark text-white text-uppercase px-3 py-2 fw-bold mb-3 portal-label">EXCLUSIVO</span>
+                        <h4 class="fw-bold text-dark fs-4 mb-3">Chaski Imperial 180°</h4>
+                        <p class="text-muted small mb-4">Camarote Suite 180° totalmente horizontal, audífonos, atención de terramoza y cena.</p>
+                    </div>
+                    <strong class="pt-3 border-top fs-5 text-dark">Desde S/ 170.00</strong>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- TERMINALES -->
+    <section class="container py-5 my-3" id="terminales">
+        <div class="text-center mb-5">
+            <h2 class="fw-bold text-dark fs-2 mb-2">Nuestras Terminales Principales</h2>
+            <p class="text-muted">Salas VIP de espera y salas de embarque climatizadas</p>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="bg-white rounded-4 shadow-sm border overflow-hidden h-100">
+                    <div class="terminal-foto">
+                        <img src="https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=600&q=80" alt="Terminal Piura">
+                        <span>TERMINAL PIURA</span>
+                    </div>
+                    <div class="p-4">
+                        <h5 class="fw-bold text-dark mb-1"><i class="bi bi-building text-warning me-2"></i>Terminal Piura</h5>
+                        <p class="text-muted small mb-0">Av. Sánchez Cerro 1205, Piura</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="bg-white rounded-4 shadow-sm border overflow-hidden h-100">
+                    <div class="terminal-foto">
+                        <img src="https://images.unsplash.com/photo-1570125909232-eb263c188f7e?auto=format&fit=crop&w=600&q=80" alt="Terminal Chiclayo">
+                        <span>TERMINAL CHICLAYO</span>
+                    </div>
+                    <div class="p-4">
+                        <h5 class="fw-bold text-dark mb-1"><i class="bi bi-building text-warning me-2"></i>Terminal Chiclayo</h5>
+                        <p class="text-muted small mb-0">Av. Bolognesi 450, Chiclayo</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="bg-white rounded-4 shadow-sm border overflow-hidden h-100">
+                    <div class="terminal-foto">
+                        <img src="https://images.unsplash.com/photo-1494515843206-f3117d3f51b7?auto=format&fit=crop&w=600&q=80" alt="Terminal Cajamarca">
+                        <span>TERMINAL CAJAMARCA</span>
+                    </div>
+                    <div class="p-4">
+                        <h5 class="fw-bold text-dark mb-1"><i class="bi bi-building text-warning me-2"></i>Terminal Cajamarca</h5>
+                        <p class="text-muted small mb-0">Av. Atahualpa 620, Cajamarca</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="portal-footer py-5">
+        <div class="container">
+            <div class="row g-4 align-items-start">
+                <div class="col-md-4">
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <div class="brand-logo-icon"><img th:src="@{/img/favicon.png}" alt="Los Chaskis" class="brand-logo-img"></div>
+                        <h4 class="m-0 fw-bold text-white fs-4">Los <span class="text-warning">Chaskis</span></h4>
+                    </div>
+                    <p class="text-light opacity-50 small mb-0">&copy; 2026 Agencia de Transportes Los Chaskis S.A.</p>
+                </div>
+
+                <div class="col-md-4">
+                    <h6 class="fw-bold text-white mb-3">Atención al Cliente</h6>
+                    <ul class="list-unstyled d-flex flex-column gap-2 small mb-0">
+                        <li><a href="#" class="text-light text-decoration-none opacity-75 hover-warning">Libro de Reclamaciones</a></li>
+                        <li><a href="#" class="text-light text-decoration-none opacity-75 hover-warning">Términos y Condiciones</a></li>
+                        <li><a href="#" class="text-light text-decoration-none opacity-75 hover-warning">Política de Privacidad</a></li>
+                    </ul>
+                </div>
+
+                <div class="col-md-4">
+                    <h6 class="fw-bold text-white mb-3">Métodos de Pago Aceptados</h6>
+                    <div class="d-flex align-items-center gap-3 text-warning fs-3">
+                        <i class="bi bi-credit-card-fill" title="Tarjetas"></i>
+                        <i class="bi bi-qr-code-scan" title="Yape / Plin"></i>
+                        <i class="bi bi-bank" title="Transferencias"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+</body>
+</html>

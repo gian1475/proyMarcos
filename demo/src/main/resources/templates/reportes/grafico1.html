@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: layout('reporte1', 'Reportes de Flota y Viajes')}">
+<body>
+<div th:fragment="content">
+
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">Reporte Estadístico: Flota y Operaciones</h1>
+            <p class="page-subtitle">Análisis cuantitativo de tipos de servicio, estados y proyecciones mensuales</p>
+        </div>
+        <a th:href="@{/admin/reportes/grafico2}" class="btn-chaski-gold">
+            <i class="bi bi-pie-chart-fill"></i> Ver Reporte de Estados y Rutas
+        </a>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <div class="col-md-6">
+            <div class="chaski-chart-card h-100">
+                <div class="chart-card-header">
+                    <h2 class="chart-card-title"><i class="bi bi-bus-front text-primary me-2"></i>Buses por Tipo de Servicio</h2>
+                    <span class="badge bg-light text-dark border">Consolidado</span>
+                </div>
+                <div class="chart-canvas-container"><canvas id="chartBusesPorServicio"></canvas></div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="chaski-chart-card h-100">
+                <div class="chart-card-header">
+                    <h2 class="chart-card-title"><i class="bi bi-shield-check text-success me-2"></i>Estado Operativo de Unidades</h2>
+                    <span class="badge bg-light text-dark border">En Vivo</span>
+                </div>
+                <div class="chart-canvas-container"><canvas id="chartBusesPorEstado"></canvas></div>
+            </div>
+        </div>
+
+        <div class="col-12">
+            <div class="chaski-chart-card">
+                <div class="chart-card-header">
+                    <h2 class="chart-card-title"><i class="bi bi-graph-up-arrow text-warning me-2"></i>Viajes Programados por Mes (Histórico Anual)</h2>
+                    <span class="badge bg-light text-dark border">Tendencia</span>
+                </div>
+                <div class="chart-canvas-container lg"><canvas id="chartViajesPorMes"></canvas></div>
+            </div>
+        </div>
+    </div>
+
+<script th:inline="javascript">
+    document.addEventListener('DOMContentLoaded', function () {
+    const busesPorServicio = [ /*[[${busEconomico}]]*/ 3, /*[[${busConfort}]]*/ 3, /*[[${busImperial}]]*/ 2 ];
+    const busesPorEstado = [ /*[[${busActivo}]]*/ 6, /*[[${busManten}]]*/ 2, /*[[${busInactivo}]]*/ 0 ];
+    const meses = Array.from(/*[[${meses}]]*/ []);
+    const viajesPorMes = Array.from(/*[[${viajesPorMes}]]*/ []);
+
+    function graficoBarras(id, labels, data, colores) {
+        new Chart(document.getElementById(id), {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{ label: 'Cantidad de Buses', data: data, backgroundColor: colores, borderRadius: 8, barThickness: 48 }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { beginAtZero: true, grid: { color: '#EDEBE6' }, ticks: { stepSize: 1 } },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+    }
+
+    graficoBarras('chartBusesPorServicio', ['Chaski Económico', 'Chaski Confort', 'Chaski Imperial'],
+        busesPorServicio, ['#8C8C8C', '#0D1B2A', '#D4AF37']);
+    graficoBarras('chartBusesPorEstado', ['Activo', 'Mantenimiento', 'Inactivo'],
+        busesPorEstado, ['#16a34a', '#f59e0b', '#dc2626']);
+
+    new Chart(document.getElementById('chartViajesPorMes'), {
+        type: 'line',
+        data: {
+            labels: meses.length ? meses : ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Set', 'Oct', 'Nov', 'Dic'],
+            datasets: [{
+                label: 'Salidas Programadas',
+                data: viajesPorMes.length ? viajesPorMes : [12, 19, 15, 25, 32, 28, 45, 39, 42, 50, 48, 55],
+                borderColor: '#D4AF37',
+                backgroundColor: 'rgba(212, 175, 55, 0.1)',
+                fill: true,
+                tension: 0.35,
+                pointRadius: 6,
+                pointBackgroundColor: '#0D1B2A',
+                pointBorderColor: '#D4AF37',
+                pointBorderWidth: 2,
+                borderWidth: 3
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: { beginAtZero: true, grid: { color: '#EDEBE6' }, ticks: { stepSize: 5 } },
+                x: { grid: { display: false } }
+            }
+        }
+    });
+    });
+</script>
+</div>
+</body>
+</html>

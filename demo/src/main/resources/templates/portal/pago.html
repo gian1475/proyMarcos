@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Paso 2: Pago y Confirmación de Pasaje')}"></head>
+<body>
+
+    <header th:replace="~{fragments/componentes :: portalTopbar(false)}"></header>
+
+    <div class="container py-4">
+
+        <!-- STEPPER -->
+        <div class="portal-stepper bg-white p-3 rounded-4 shadow-sm border mb-4">
+            <div class="step-item completed">
+                <i class="bi bi-check-circle-fill fs-5"></i>
+                <span class="fw-bold">1. Ida</span>
+            </div>
+            <div class="step-item active"><span class="step-pill">2 Pago</span></div>
+            <div class="step-item"><span class="step-pill">3 Confirmación</span></div>
+        </div>
+
+        <div class="row g-4">
+            <!-- FORMULARIO -->
+            <div class="col-lg-8">
+                <div th:replace="~{fragments/componentes :: alerta}"></div>
+
+                <div th:if="${cliente == null}" class="bg-white p-4 rounded-4 shadow-sm border mb-4 d-flex justify-content-between align-items-center flex-wrap gap-3">
+                    <div>
+                        <h4 class="fw-bold text-dark fs-5 mb-1">¿No tienes una cuenta?</h4>
+                        <p class="text-muted small mb-0">Crea una cuenta para agilizar tus compras futuras</p>
+                    </div>
+                    <a th:href="@{/portal/registro}" class="btn-chaski-gold py-2 px-4 fs-6">CREAR CUENTA</a>
+                </div>
+
+                <div th:if="${cliente != null}" class="bg-white p-4 rounded-4 shadow-sm border mb-4 d-flex justify-content-between align-items-center flex-wrap gap-3">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="user-avatar-img" style="width: 44px; height: 44px;"
+                             th:text="${#strings.substring(cliente.nombres, 0, 1) + #strings.substring(cliente.apellidos, 0, 1)}">GM</div>
+                        <div>
+                            <h4 class="fw-bold text-dark fs-5 mb-1" th:text="|Hola, ${cliente.nombreCompleto}|">Hola</h4>
+                            <p class="text-muted small mb-0">Compras como cliente registrado. Tus datos ya están cargados.</p>
+                        </div>
+                    </div>
+                    <a th:href="@{/portal/salir}" class="btn btn-sm btn-outline-secondary">Cerrar sesión</a>
+                </div>
+
+                <div class="bg-white p-4 rounded-4 shadow-sm border mb-4">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h3 class="fw-bold fs-5 text-dark mb-0">Información del Pasajero (Asiento 02A)</h3>
+                        <span class="badge bg-light text-secondary border px-3 py-2">
+                            <i class="bi bi-clock me-1 text-warning"></i> Tiempo restante: <strong>08:44</strong>
+                        </span>
+                    </div>
+
+                    <form>
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-secondary">Nombres</label>
+                                <input type="text" class="form-control" placeholder="Ingrese nombres" th:value="${cliente != null ? cliente.nombres : 'Gianfranco'}" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-secondary">Apellidos</label>
+                                <input type="text" class="form-control" placeholder="Ingrese apellidos" th:value="${cliente != null ? cliente.apellidos : 'Mendoza Rivera'}" required>
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-secondary">N° Documento (DNI/CE)</label>
+                                <input type="text" class="form-control" placeholder="8 dígitos numéricos" th:value="${cliente != null ? cliente.numeroDocumento : '72458912'}" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-secondary">Correo Electrónico</label>
+                                <input type="email" class="form-control" placeholder="ejemplo@correo.com" th:value="${cliente != null ? cliente.correo : 'gianfranco@gmail.com'}" required>
+                            </div>
+                        </div>
+
+                        <!-- CONTACTO DE EMERGENCIA (SUTRAN) -->
+                        <div class="pago-alerta p-3 rounded-3 mb-4">
+                            <div class="d-flex align-items-center gap-2 mb-2 text-warning-emphasis fw-bold small">
+                                <i class="bi bi-shield-check text-warning fs-5"></i>
+                                Contacto de Emergencia en Ruta (Requerido por SUTRAN)
+                            </div>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <input type="text" class="form-control form-control-sm bg-white" placeholder="Nombre completo de contacto" value="Carlos Mendoza Paredes">
+                                </div>
+                                <div class="col-md-6">
+                                    <input type="text" class="form-control form-control-sm bg-white" placeholder="Teléfono de contacto" value="987654321">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-check mb-4">
+                            <input class="form-check-input" type="checkbox" id="chkFactura">
+                            <label class="form-check-label text-dark fw-semibold small" for="chkFactura">Requiero Factura con RUC (Empresas)</label>
+                        </div>
+
+                        <!-- MÉTODO DE PAGO -->
+                        <h4 class="fw-bold fs-5 text-dark mb-3">Seleccione el Método de Pago</h4>
+
+                        <label class="border rounded-3 p-3 mb-3 d-flex align-items-center justify-content-between cursor-pointer pago-opcion-activa" for="radioYape">
+                            <span class="form-check d-flex align-items-center gap-2 mb-0">
+                                <input class="form-check-input" type="radio" name="metodoPago" id="radioYape" checked>
+                                <span class="fw-bold text-dark">Billetera Digital (Yape / Plin)</span>
+                            </span>
+                            <span class="d-flex gap-2">
+                                <span class="badge text-white px-3 py-2 fw-bold" style="background-color: #7c3aed;">Yape</span>
+                                <span class="badge text-white px-3 py-2 fw-bold" style="background-color: #0284c7;">Plin</span>
+                            </span>
+                        </label>
+
+                        <label class="border rounded-3 p-3 mb-4 d-flex align-items-center justify-content-between cursor-pointer" for="radioTarjeta">
+                            <span class="form-check d-flex align-items-center gap-2 mb-0">
+                                <input class="form-check-input" type="radio" name="metodoPago" id="radioTarjeta">
+                                <span class="fw-bold text-dark">Tarjeta de Crédito o Débito</span>
+                            </span>
+                            <i class="bi bi-credit-card text-secondary fs-5"></i>
+                        </label>
+
+                        <button type="button" class="btn-chaski-gold w-100 py-3 fs-6 justify-content-center text-uppercase fw-bold"
+                                onclick="alert('¡Compra simulada con éxito! Su pasaje electrónico para el Asiento 02A ha sido emitido y enviado a su correo.')">
+                            <i class="bi bi-check2-circle"></i> Pagar y Confirmar Reserva (S/ 130.00)
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- RESUMEN DE COMPRA -->
+            <div class="col-lg-4">
+                <div class="bg-white p-4 rounded-4 shadow-sm border position-sticky" style="top: 90px;">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h4 class="fw-bold fs-5 text-dark mb-0">Resumen de Compra</h4>
+                        <span class="badge bg-warning text-dark fw-bold">Ida</span>
+                    </div>
+
+                    <h5 class="fw-bold text-dark mb-1">CHASKI CONFORT 160°</h5>
+                    <p class="text-muted small mb-4">Dom, 30 Ago, 2026</p>
+
+                    <div class="d-flex flex-column gap-3 mb-4 pb-3 border-bottom">
+                        <div class="d-flex align-items-start gap-3">
+                            <i class="bi bi-geo-alt-fill text-warning fs-5"></i>
+                            <div>
+                                <strong class="text-dark d-block">Lima, Perú</strong>
+                                <small class="text-muted">12:32 PM (Plaza Norte)</small>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-start gap-3">
+                            <i class="bi bi-geo-fill text-warning fs-5"></i>
+                            <div>
+                                <strong class="text-dark d-block">Chiclayo, Perú</strong>
+                                <small class="text-muted">Terminal Bolognesi - 02:30 AM aprox</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between text-secondary mb-2 small">
+                        <span>Pasaje Asiento 02A:</span>
+                        <span class="fw-semibold text-dark">S/ 110.17</span>
+                    </div>
+                    <div class="d-flex justify-content-between text-secondary mb-3 small pb-3 border-bottom">
+                        <span>IGV (18%):</span>
+                        <span class="fw-semibold text-dark">S/ 19.83</span>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center">
+                        <strong class="fs-5 text-dark">Total a Pagar</strong>
+                        <strong class="fs-3 text-success fw-bold">S/ 130.00</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer th:replace="~{fragments/componentes :: portalFooter('Transacción Segura SSL 256-bit')}"></footer>
+
+</body>
+</html>

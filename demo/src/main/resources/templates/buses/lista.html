@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: layout('buses', 'Gestión de Flota (Buses)')}">
+<body>
+<div th:fragment="content">
+
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">Gestión de Flota (Buses)</h1>
+            <p class="page-subtitle">Control de unidades, tipos de servicio y capacidad operativa</p>
+        </div>
+        <button type="button" class="btn-chaski-navy" data-bs-toggle="modal" data-bs-target="#modalBus">
+            <i class="bi bi-plus-lg"></i> Registrar Nuevo Bus
+        </button>
+    </div>
+
+    <div th:replace="~{fragments/componentes :: alerta}"></div>
+
+    <div th:replace="~{fragments/componentes :: buscador('/admin/buses', ${q})}"></div>
+
+    <div class="chaski-table-card">
+        <div class="table-responsive">
+            <table class="chaski-table">
+                <thead>
+                    <tr>
+                        <th style="width: 80px;">ID Bus</th>
+                        <th>Placa</th>
+                        <th>Modelo</th>
+                        <th>Tipo de Servicio</th>
+                        <th>Capacidad (Asientos)</th>
+                        <th>Estado</th>
+                        <th class="text-center" style="width: 110px;">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="b : ${buses}">
+                        <td class="fw-semibold text-secondary" th:text="${b.id}">1</td>
+                        <td><span class="fw-bold text-dark font-monospace" th:text="${b.placa}">CHK-201</span></td>
+                        <td th:text="${b.modelo}">Marcopolo G7 1200</td>
+                        <td>
+                            <span th:class="|badge-chaski-${#strings.toLowerCase(b.tipoServicio.name())}|"
+                                  th:text="|Chaski ${b.tipoServicio.displayName}|">Chaski Económico</span>
+                        </td>
+                        <td class="fw-semibold" th:text="${b.capacidadAsientos}">20</td>
+                        <td>
+                            <span th:class="|badge-estado-${#strings.toLowerCase(b.estadoBus.name())}|"
+                                  th:text="${b.estadoBus}">ACTIVO</span>
+                        </td>
+                        <td class="text-center">
+                            <div th:replace="~{fragments/componentes :: acciones('/admin/buses', ${b.id}, '¿Está seguro de eliminar esta unidad de la flota?')}"></div>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(buses)}">
+                        <td colspan="7" class="text-center py-4 text-muted">No hay buses registrados en la flota.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div th:replace="~{fragments/componentes :: tablaFooter(${buses.size()}, 'buses')}"></div>
+    </div>
+
+    <!-- MODAL REGISTRAR / EDITAR BUS -->
+    <div class="modal fade" id="modalBus" tabindex="-1" aria-hidden="true" th:classappend="${editando} ? 'show d-block'">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg rounded-4">
+                <div th:replace="~{fragments/componentes :: modalHeader('Registrar Nuevo Bus', 'Editar Bus', '/admin/buses')}"></div>
+                <form th:action="@{/admin/buses/guardar}" th:object="${bus}" method="post">
+                    <div class="modal-body p-4">
+                        <input type="hidden" th:field="*{id}">
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Placa del Bus</label>
+                            <input type="text" class="form-control" th:field="*{placa}" placeholder="Ej: CHK-201" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Modelo de Carrocería</label>
+                            <input type="text" class="form-control" th:field="*{modelo}" placeholder="Ej: Marcopolo G7 1200" required>
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Tipo de Servicio</label>
+                                <select class="form-select" th:field="*{tipoServicio}" required>
+                                    <option th:each="tipo : ${tiposServicio}" th:value="${tipo}" th:text="${tipo.displayName}"></option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Capacidad (Asientos)</label>
+                                <input type="number" class="form-control" th:field="*{capacidadAsientos}" min="10" max="80" required>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Estado Operativo</label>
+                            <select class="form-select" th:field="*{estadoBus}" required>
+                                <option th:each="est : ${estadosBus}" th:value="${est}" th:text="${est}"></option>
+                            </select>
+                        </div>
+                    </div>
+                    <div th:replace="~{fragments/componentes :: modalFooter('/admin/buses', 'Guardar Cambios')}"></div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div th:if="${editando}" class="modal-backdrop fade show"></div>
+
+</div>
+</body>
+</html>

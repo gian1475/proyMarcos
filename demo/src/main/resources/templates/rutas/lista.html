@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: layout('rutas', 'Catálogo de Rutas')}">
+<body>
+<div th:fragment="content">
+
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">Catálogo de Rutas</h1>
+            <p class="page-subtitle">Configuración de trayectos interprovinciales y tiempos estimados</p>
+        </div>
+        <button type="button" class="btn-chaski-navy" data-bs-toggle="modal" data-bs-target="#modalRuta">
+            <i class="bi bi-plus-lg"></i> Registrar Ruta
+        </button>
+    </div>
+
+    <div th:replace="~{fragments/componentes :: alerta}"></div>
+
+    <div th:replace="~{fragments/componentes :: buscador('/admin/rutas', ${q})}"></div>
+
+    <div class="chaski-table-card">
+        <div class="table-responsive">
+            <table class="chaski-table">
+                <thead>
+                    <tr>
+                        <th style="width: 80px;">ID</th>
+                        <th>Terminal Origen</th>
+                        <th>Terminal Destino</th>
+                        <th>Trayecto Completo</th>
+                        <th>Duración Estimada</th>
+                        <th>Estado</th>
+                        <th class="text-center" style="width: 110px;">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="r : ${rutas}">
+                        <td class="fw-semibold text-secondary" th:text="${r.id}">1</td>
+                        <td><span class="fw-semibold text-dark" th:text="${r.nombreOrigen}">Lima</span></td>
+                        <td><span class="fw-semibold text-dark" th:text="${r.nombreDestino}">Piura</span></td>
+                        <td><span class="badge-chaski-confort" th:text="${r.descripcionRuta}">Lima → Piura</span></td>
+                        <td>
+                            <i class="bi bi-clock me-1 text-muted"></i>
+                            <span th:text="${r.duracionEstimada}">14:00</span> hrs aprox
+                        </td>
+                        <td>
+                            <span th:class="${r.activa} ? 'badge-estado-activo' : 'badge-estado-inactivo'"
+                                  th:text="${r.activa} ? 'Activa' : 'Inactiva'">Activa</span>
+                        </td>
+                        <td class="text-center">
+                            <div th:replace="~{fragments/componentes :: acciones('/admin/rutas', ${r.id}, '¿Eliminar esta ruta?')}"></div>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(rutas)}">
+                        <td colspan="7" class="text-center py-4 text-muted">No hay rutas registradas.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div th:replace="~{fragments/componentes :: tablaFooter(${rutas.size()}, 'rutas')}"></div>
+    </div>
+
+    <!-- MODAL REGISTRAR / EDITAR RUTA -->
+    <div class="modal fade" id="modalRuta" tabindex="-1" aria-hidden="true" th:classappend="${editando} ? 'show d-block'">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg rounded-4">
+                <div th:replace="~{fragments/componentes :: modalHeader('Registrar Nueva Ruta', 'Editar Ruta', '/admin/rutas')}"></div>
+                <form th:action="@{/admin/rutas/guardar}" th:object="${ruta}" method="post">
+                    <div class="modal-body p-4">
+                        <input type="hidden" th:field="*{id}">
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Terminal de Origen</label>
+                            <select class="form-select" th:field="*{terminalOrigenId}" required>
+                                <option value="">Seleccione origen...</option>
+                                <option th:each="t : ${terminales}" th:value="${t.id}" th:text="|${t.nombreTerminal} (${t.ciudad})|"></option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Terminal de Destino</label>
+                            <select class="form-select" th:field="*{terminalDestinoId}" required>
+                                <option value="">Seleccione destino...</option>
+                                <option th:each="t : ${terminales}" th:value="${t.id}" th:text="|${t.nombreTerminal} (${t.ciudad})|"></option>
+                            </select>
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Duración Estimada</label>
+                                <input type="text" class="form-control" th:field="*{duracionEstimada}" placeholder="Ej: 14:00" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Estado Operativo</label>
+                                <select class="form-select" th:field="*{activa}">
+                                    <option th:value="true">Activa</option>
+                                    <option th:value="false">Inactiva</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div th:replace="~{fragments/componentes :: modalFooter('/admin/rutas', 'Guardar Ruta')}"></div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div th:if="${editando}" class="modal-backdrop fade show"></div>
+
+</div>
+</body>
+</html>

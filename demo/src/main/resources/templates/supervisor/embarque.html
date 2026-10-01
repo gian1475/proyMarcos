@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout-supervisor :: layout('embarque', 'Control de Embarque')}">
+<body>
+<div th:fragment="content">
+
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">CONTROL DE EMBARQUE</h1>
+            <p class="page-subtitle">Gestión de abordaje de pasajeros en tiempo real.</p>
+        </div>
+        <div class="sup-terminal-card">
+            <i class="bi bi-geo-alt"></i>
+            <div>
+                <strong th:text="${usuario != null ? usuario.terminal.toUpperCase() : 'TERMINAL PIURA'}">TERMINAL PIURA</strong><br>
+                <span class="text-muted" th:text="${#temporals.format(ahora, 'dd/MM/yyyy - hh:mm a')}">26/05/2026 - 10:45 a.m.</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- BLOQUE A: BUSCADOR -->
+    <form class="sup-card mb-4 d-flex flex-wrap gap-3 align-items-center" th:action="@{/supervisor/embarque}" method="get">
+        <div class="sup-buscador-modo">
+            <input type="radio" name="modo" value="placa" id="modoPlaca" th:checked="${modo == 'placa'}">
+            <label for="modoPlaca">Por Placa</label>
+            <input type="radio" name="modo" value="horario" id="modoHorario" th:checked="${modo == 'horario'}">
+            <label for="modoHorario">Por Horario</label>
+        </div>
+        <input type="text" name="q" th:value="${q}" class="form-control flex-grow-1" style="min-width: 220px; width: auto;"
+               placeholder="Ej: CHK-202 (placa) o 11:00 (horario)">
+        <button type="submit" class="btn-chaski-navy"><i class="bi bi-search"></i> Buscar Viaje</button>
+    </form>
+
+    <div th:if="${sinResultados}" class="alert alert-warning border-0 shadow-sm">
+        No se encontraron viajes para «<span th:text="${q}"></span>». Se muestra el viaje actual.
+    </div>
+    <div th:if="${#lists.size(resultados) > 1}" class="sup-card mb-4">
+        <h2 class="sup-card-title">Viajes encontrados</h2>
+        <div class="d-flex flex-wrap gap-2">
+            <a th:each="r : ${resultados}" th:href="@{/supervisor/embarque(viajeId=${r.id})}"
+               class="btn btn-sm btn-outline-dark"
+               th:text="|${r.placaBus} · ${r.descripcionRuta} · ${#temporals.format(r.horaSalida, 'HH:mm')}|">CHK-202</a>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <!-- BLOQUE A: BUS SELECCIONADO -->
+        <div class="col-xl-7">
+            <div class="sup-card h-100">
+                <h2 class="sup-card-title"><i class="bi bi-bus-front me-2"></i>Bus Seleccionado</h2>
+                <div class="row g-3">
+                    <div class="col-md-5">
+                        <div class="bus-foto">
+                            <i class="bi bi-bus-front-fill"></i>
+                            <img th:src="@{/img/bus-chk202.jpg}" alt="Unidad" onerror="this.style.display='none'">
+                        </div>
+                    </div>
+                    <div class="col-md-7">
+                        <div class="bus-dato"><span>Unidad (Placa):</span><strong class="fs-5" th:text="${bus.placa}">CHK-202</strong></div>
+                        <div class="bus-dato"><span>Servicio:</span>
+                            <strong th:text="|Chaski ${bus.tipoServicio.displayName} (${bus.capacidadAsientos} Asientos)|">Chaski Confort</strong></div>
+                        <div class="bus-dato"><span>Ruta:</span><strong th:text="${viaje.descripcionRuta}">Lima → Piura</strong></div>
+                        <div class="bus-dato"><span>Fecha y Hora:</span>
+                            <strong th:text="|${#temporals.format(viaje.fechaSalida, 'dd/MM/yyyy')} - ${#temporals.format(viaje.horaSalida, 'hh:mm a')}|">26/05/2026</strong></div>
+                        <div class="bus-dato"><span>Chofer:</span><strong th:text="${chofer.nombreCompleto}">Chofer</strong></div>
+                        <div class="bus-dato"><span>Licencia:</span><strong class="font-monospace" th:text="${chofer.numeroLicencia}">Q10000001</strong></div>
+                        <div class="bus-dato"><span>Estado del viaje:</span>
+                            <span th:class="${viaje.estadoViaje.badge}" th:text="${viaje.estadoViaje.displayName}">Programado</span></div>
+                    </div>
+                </div>
+
+                <div class="row g-2 mt-3">
+                    <div class="col-sm-6">
+                        <form th:action="@{/supervisor/embarque/viaje/{id}/iniciar(id=${viaje.id})}" method="post">
+                            <button type="submit" class="btn-sup btn-sup-verde w-100"
+                                    th:disabled="${viaje.estadoViaje.name() != 'PROGRAMADO'}">
+                                <i class="bi bi-play-fill"></i> Autorizar Salida / Iniciar Viaje
+                            </button>
+                        </form>
+                    </div>
+                    <div class="col-sm-6">
+                        <form th:action="@{/supervisor/embarque/viaje/{id}/finalizar(id=${viaje.id})}" method="post">
+                            <button type="submit" class="btn-sup btn-sup-rojo w-100"
+                                    th:disabled="${viaje.estadoViaje.name() != 'EN_CURSO'}">
+                                <i class="bi bi-stop-fill"></i> Finalizar Viaje
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- BLOQUE B: INDICADOR DE OCUPACIÓN -->
+        <div class="col-xl-5">
+            <div class="sup-card h-100">
+                <h2 class="sup-card-title">Indicador de Ocupación</h2>
+                <div class="row g-3 align-items-center">
+                    <div class="col-sm-6">
+                        <div class="chart-canvas-container" style="height: 210px;"><canvas id="chartOcupacion"></canvas></div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="border rounded-3">
+                            <div class="contador-fila"><span><i class="bi bi-grid-3x3-gap me-2"></i>Asientos Totales</span><strong th:text="${resumen.totalAsientos}">32</strong></div>
+                            <div class="contador-fila"><span><i class="bi bi-person-fill me-2 text-warning"></i>Ocupados (Vendidos)</span><strong th:text="${resumen.vendidos}">26</strong></div>
+                            <div class="contador-fila"><span><span class="contador-dot dot-abordo"></span>Abordó</span><strong class="text-success" th:text="${resumen.abordo}">21</strong></div>
+                            <div class="contador-fila"><span><span class="contador-dot dot-ausente"></span>Ausente</span><strong class="text-danger" th:text="${resumen.ausente}">2</strong></div>
+                            <div class="contador-fila"><span><span class="contador-dot dot-pendiente"></span>Pendientes por Abordar</span><strong th:text="${resumen.pendientes}">3</strong></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- BLOQUE C: MANIFIESTO -->
+    <div class="sup-card">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+            <h2 class="sup-card-title mb-0">Manifiesto de Pasajeros</h2>
+            <button type="button" class="btn-chaski-navy" data-bs-toggle="modal" data-bs-target="#modalEscanear">
+                <i class="bi bi-qr-code-scan"></i> Escanear Ticket / DNI
+            </button>
+        </div>
+        <div id="avisoFiltro" class="alert alert-info border-0 py-2 small d-none">
+            Mostrando coincidencias para <strong id="textoFiltro"></strong>.
+            <a href="#" id="limpiarFiltro">Quitar filtro</a>
+        </div>
+
+        <div class="table-responsive">
+            <table class="manifiesto w-100">
+                <thead>
+                    <tr>
+                        <th>N°</th><th>Nombre del Pasajero</th><th>DNI / Documento</th><th>Asiento</th>
+                        <th>Estado</th><th>Hora de Abordaje</th><th class="text-center">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="b, i : ${boletos}" class="fila-boleto" th:attr="data-busca=|${b.documento} ${b.numeroAsiento} ${#strings.toLowerCase(b.nombrePasajero)}|">
+                        <td th:text="${i.count}">1</td>
+                        <td th:text="${b.nombrePasajero}">María Fernanda López</td>
+                        <td class="font-monospace" th:text="${b.documento}">74589621</td>
+                        <td><strong th:text="${b.numeroAsiento}">05A</strong></td>
+                        <td><span th:class="|badge-abordaje badge-abordaje-${b.estado.css}|" th:text="${b.estado.displayName}">Pendiente</span></td>
+                        <td th:text="${b.horaAbordajeTexto}">-</td>
+                        <td>
+                            <div class="d-flex gap-2 justify-content-center">
+                                <form th:action="@{/supervisor/embarque/boleto/{id}/abordo(id=${b.id})}" method="post">
+                                    <button class="btn-sup btn-sup-verde py-1" type="submit"
+                                            th:disabled="${viaje.estadoViaje.name() == 'COMPLETADO' or viaje.estadoViaje.name() == 'CANCELADO'}">
+                                        <i class="bi bi-check-lg"></i> Abordó</button>
+                                </form>
+                                <form th:action="@{/supervisor/embarque/boleto/{id}/ausente(id=${b.id})}" method="post">
+                                    <button class="btn-sup btn-sup-rojo py-1" type="submit"
+                                            th:disabled="${viaje.estadoViaje.name() == 'COMPLETADO' or viaje.estadoViaje.name() == 'CANCELADO'}">
+                                        <i class="bi bi-person-x"></i> Ausente</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(boletos)}">
+                        <td colspan="7" class="text-center py-4 text-muted">Este viaje aún no tiene pasajes vendidos.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- MODAL ESCANEAR TICKET / DNI -->
+    <div class="modal fade" id="modalEscanear" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg rounded-4">
+                <div class="modal-header bg-dark text-white border-0 py-3">
+                    <h5 class="modal-title fw-bold"><i class="bi bi-qr-code-scan me-2"></i>Escanear Ticket / DNI</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <p class="text-muted small">Escanea el código con el lector o digita el DNI / asiento / nombre del pasajero.</p>
+                    <input type="text" id="inputEscaneo" class="form-control form-control-lg" placeholder="Ej: 72541236" autocomplete="off">
+                </div>
+                <div class="modal-footer border-0 pt-0 px-4 pb-4">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn-chaski-gold" id="btnBuscarEscaneo"><i class="bi bi-search"></i> Identificar pasajero</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        document.addEventListener('DOMContentLoaded', function () {
+            // ---- Doughnut de ocupación
+            const datos = /*[[${ {resumen.abordo, resumen.ausente, resumen.pendientes, resumen.libres} }]]*/ [21, 2, 3, 6];
+            const pct = /*[[${resumen.ocupacionPct}]]*/ 81;
+            const textoCentral = {
+                id: 'textoCentral',
+                beforeDraw(chart) {
+                    const { ctx, width, height } = chart;
+                    ctx.save();
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.font = "800 1.7rem 'Inter', sans-serif";
+                    ctx.fillStyle = '#0D1B2A';
+                    ctx.fillText(pct + '%', width / 2, height / 2 - 6);
+                    ctx.font = "500 0.72rem 'Inter', sans-serif";
+                    ctx.fillStyle = '#6B6B6B';
+                    ctx.fillText('Ocupación', width / 2, height / 2 + 16);
+                    ctx.restore();
+                }
+            };
+            new Chart(document.getElementById('chartOcupacion'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['Abordó', 'Ausente', 'Pendiente', 'Libres'],
+                    datasets: [{ data: datos, backgroundColor: ['#16a34a', '#dc2626', '#f5b800', '#D9D6CE'], borderWidth: 2, borderColor: '#fff' }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, cutout: '70%', plugins: { legend: { display: false } } },
+                plugins: [textoCentral]
+            });
+
+            // ---- Escanear Ticket / DNI: filtra el manifiesto
+            const filas = document.querySelectorAll('.fila-boleto');
+            const aviso = document.getElementById('avisoFiltro');
+            const modalEl = document.getElementById('modalEscanear');
+            const input = document.getElementById('inputEscaneo');
+
+            function filtrar(texto) {
+                const q = texto.trim().toLowerCase();
+                let coincidencias = 0;
+                filas.forEach(f => {
+                    const ok = !q || f.dataset.busca.toLowerCase().includes(q);
+                    f.classList.toggle('d-none', !ok);
+                    if (ok) coincidencias++;
+                });
+                aviso.classList.toggle('d-none', !q);
+                document.getElementById('textoFiltro').textContent = q ? '«' + texto.trim() + '» (' + coincidencias + ')' : '';
+            }
+
+            document.getElementById('btnBuscarEscaneo').addEventListener('click', function () {
+                filtrar(input.value);
+                bootstrap.Modal.getInstance(modalEl).hide();
+            });
+            input.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); document.getElementById('btnBuscarEscaneo').click(); } });
+            document.getElementById('limpiarFiltro').addEventListener('click', e => { e.preventDefault(); input.value = ''; filtrar(''); });
+            modalEl.addEventListener('shown.bs.modal', () => input.focus());
+        });
+    </script>
+
+</div>
+</body>
+</html>

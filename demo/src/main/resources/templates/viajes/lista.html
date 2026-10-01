@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: layout('viajes', 'Rutas e Itinerarios (Viajes)')}">
+<body>
+<div th:fragment="content">
+
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">Rutas e Itinerarios (Viajes)</h1>
+            <p class="page-subtitle">Gestión de viajes programados a nivel nacional</p>
+        </div>
+        <button type="button" class="btn-chaski-navy" data-bs-toggle="modal" data-bs-target="#modalViaje">
+            <i class="bi bi-plus-lg"></i> Programar Salida
+        </button>
+    </div>
+
+    <div th:replace="~{fragments/componentes :: alerta}"></div>
+
+    <div th:replace="~{fragments/componentes :: buscador('/admin/viajes', ${q})}"></div>
+
+    <div class="chaski-table-card">
+        <div class="table-responsive">
+            <table class="chaski-table">
+                <thead>
+                    <tr>
+                        <th style="width: 90px;">ID Viaje</th>
+                        <th>Ruta</th>
+                        <th>Bus Asignado</th>
+                        <th>Fecha de Salida</th>
+                        <th>Hora de Salida</th>
+                        <th>Precio del Pasaje (S/)</th>
+                        <th>Estado del Viaje</th>
+                        <th class="text-center" style="width: 110px;">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="v : ${viajes}">
+                        <td class="fw-semibold text-secondary" th:text="${v.id}">1</td>
+                        <td><span class="fw-bold text-dark" th:text="${v.descripcionRuta}">Lima → Piura</span></td>
+                        <td><span class="fw-semibold font-monospace" th:text="${v.placaBus}">CHK-202</span></td>
+                        <td th:text="${#temporals.format(v.fechaSalida, 'dd/MM/yyyy')}">26/05/2026</td>
+                        <td th:text="${#temporals.format(v.horaSalida, 'hh:mm a')}">11:00 a.m.</td>
+                        <td><span class="fw-bold text-dark" th:text="${#numbers.formatDecimal(v.precioBase, 1, 2)}">80.00</span></td>
+                        <td>
+                            <span th:class="${v.estadoViaje.badge}" th:text="${v.estadoViaje.displayName}">Programado</span>
+                        </td>
+                        <td class="text-center">
+                            <div th:replace="~{fragments/componentes :: acciones('/admin/viajes', ${v.id}, '¿Está seguro de eliminar este viaje programado?')}"></div>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(viajes)}">
+                        <td colspan="8" class="text-center py-4 text-muted">No hay viajes programados en el itinerario.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div th:replace="~{fragments/componentes :: tablaFooter(${viajes.size()}, 'viajes')}"></div>
+    </div>
+
+    <!-- MODAL PROGRAMAR / EDITAR SALIDA -->
+    <div class="modal fade" id="modalViaje" tabindex="-1" aria-hidden="true" th:classappend="${editando} ? 'show d-block'">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content border-0 shadow-lg rounded-4">
+                <div th:replace="~{fragments/componentes :: modalHeader('Programar Nueva Salida', 'Editar Viaje Programado', '/admin/viajes')}"></div>
+                <form th:action="@{/admin/viajes/guardar}" th:object="${viaje}" method="post">
+                    <div class="modal-body p-4">
+                        <input type="hidden" th:field="*{id}">
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Ruta (Origen - Destino)</label>
+                                <select class="form-select" th:field="*{rutaId}" required>
+                                    <option value="">Seleccione ruta...</option>
+                                    <option th:each="r : ${rutas}" th:value="${r.id}" th:text="${r.descripcionRuta}"></option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Bus Asignado</label>
+                                <select class="form-select" th:field="*{busId}" required>
+                                    <option value="">Seleccione bus...</option>
+                                    <option th:each="b : ${buses}" th:value="${b.id}" th:text="|${b.placa} - ${b.modelo} (${b.tipoServicio.displayName})|"></option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Conductor Principal</label>
+                                <select class="form-select" th:field="*{choferPrincipalId}" required>
+                                    <option value="">Seleccione chofer...</option>
+                                    <option th:each="c : ${choferes}" th:value="${c.id}" th:text="${c.nombreCompleto}"></option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Precio del Pasaje (S/)</label>
+                                <input type="number" step="0.01" class="form-control" th:field="*{precioBase}" min="1" required>
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold">Fecha de Salida</label>
+                                <input type="date" class="form-control" th:field="*{fechaSalida}" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold">Hora de Salida</label>
+                                <input type="time" class="form-control" th:field="*{horaSalida}" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold">Estado del Viaje</label>
+                                <select class="form-select" th:field="*{estadoViaje}" required>
+                                    <option th:each="est : ${estadosViaje}" th:value="${est}" th:text="${est.displayName}"></option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div th:replace="~{fragments/componentes :: modalFooter('/admin/viajes', 'Guardar Programación')}"></div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div th:if="${editando}" class="modal-backdrop fade show"></div>
+
+</div>
+</body>
+</html>

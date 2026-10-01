@@ -1,0 +1,974 @@
+# MÓDULO B2C — CLIENTE
+
+## Sistema Web Integral de Gestión Operativa y Venta de Pasajes Interprovinciales
+
+### LOS CHASKIS
+
+---
+
+# 1. OBJETIVO DEL MÓDULO B2C
+
+Implementar el portal público de **LOS CHASKIS**, orientado a clientes que desean consultar viajes disponibles, seleccionar sus asientos, registrar los datos del pasajero, realizar un pago simulado y obtener la confirmación de su reserva y comprobante.
+
+El flujo debe mantenerse estrictamente en el siguiente orden:
+
+```text
+INICIO
+  ↓
+BÚSQUEDA DE VIAJE
+  ↓
+RESULTADOS
+  ↓
+SELECCIÓN DE VIAJE
+  ↓
+SELECCIÓN DE ASIENTO
+  ↓
+DATOS DEL PASAJERO
+  ↓
+COMPROBANTE
+  ↓
+PAGO SIMULADO
+  ↓
+CONFIRMACIÓN
+  ↓
+VOUCHER / COMPROBANTE
+```
+
+## REGLAS GENERALES
+
+* No modificar el flujo indicado.
+* No agregar pasos adicionales al proceso de compra.
+* No eliminar ninguna funcionalidad especificada.
+* Mantener las cuatro vistas principales:
+
+  * `inicio.html`
+  * `resultados.html`
+  * `compra-pasaje.html`
+  * `confirmacion.html`
+* Utilizar los datos disponibles en MySQL.
+* El frontend debe implementarse con **HTML + JavaScript + Bootstrap 5**.
+* El backend debe utilizar **Spring Boot + Spring Security + MySQL**.
+* El pago es **simulado**; no integrar una pasarela de pago real.
+* Mantener el sistema preparado para clientes registrados y clientes invitados.
+* Los datos de compra deben persistirse en la base de datos.
+* Validar los datos antes de avanzar al siguiente paso.
+* La disponibilidad de asientos debe reflejar el estado real del viaje.
+
+---
+
+# 2. `inicio.html`
+
+## LANDING PAGE + BUSCADOR PRINCIPAL
+
+Esta es la puerta de entrada pública del portal B2C.
+
+El usuario debe poder consultar rápidamente un viaje indicando origen, destino, fecha y cantidad de pasajeros.
+
+---
+
+## 2.1. HERO SECTION
+
+Crear un banner principal institucional de **LOS CHASKIS**.
+
+Debe incluir:
+
+* Imagen representativa de la marca.
+* Lema comercial.
+* Diseño visual relacionado con transporte interprovincial.
+* Buscador principal superpuesto sobre el Hero Section.
+
+El buscador debe ser el elemento principal de interacción de esta sección.
+
+---
+
+# 2.2. FORMULARIO DE BÚSQUEDA
+
+### Campo 1 — Ciudad / Terminal de Origen
+
+Crear un desplegable para seleccionar el origen.
+
+Los datos deben cargarse desde:
+
+```text
+terminales
+```
+
+o desde la lista de terminales disponible en memoria cuando corresponda.
+
+---
+
+### Campo 2 — Ciudad / Terminal de Destino
+
+Crear un segundo desplegable.
+
+Debe permitir seleccionar el destino y trabajar de forma relacionada con el origen seleccionado.
+
+El destino debe filtrarse dinámicamente para mostrar opciones válidas.
+
+---
+
+### Campo 3 — Fecha de Ida
+
+Selector de fecha.
+
+Permitir seleccionar la fecha del viaje.
+
+---
+
+### Campo 4 — Fecha de Vuelta
+
+Mantener la opción de:
+
+```text
+Fecha de Vuelta
+```
+
+como opción adicional/opcional.
+
+No modificar el flujo principal de compra por la existencia de este campo.
+
+---
+
+### Campo 5 — Cantidad de Pasajeros
+
+Implementar un contador para seleccionar la cantidad de pasajeros.
+
+---
+
+### Acción principal
+
+Botón destacado:
+
+```text
+BUSCAR PASAJES
+```
+
+Al ejecutarse, debe enviar los criterios seleccionados hacia:
+
+```text
+resultados.html
+```
+
+---
+
+# 2.3. SECCIÓN BENEFICIOS / SERVICIOS
+
+Mostrar tarjetas informativas sobre los tipos de servicio disponibles.
+
+Los contenidos deben estar relacionados con la tabla:
+
+```text
+servicio
+```
+
+Ejemplos:
+
+* Confort 160°
+* Imperial 180°
+* Wi-Fi a bordo
+* Pantallas individuales
+* Conectores USB
+
+La información debe mostrarse de forma visual mediante tarjetas.
+
+---
+
+# 2.4. DESTINOS POPULARES / OFERTAS
+
+Mostrar accesos rápidos hacia rutas frecuentes.
+
+Ejemplos:
+
+```text
+Lima → Cajamarca
+Lima → Chiclayo
+```
+
+Mostrar el precio:
+
+```text
+Desde S/ [precio]
+```
+
+El precio debe obtenerse desde:
+
+```text
+precio_base
+```
+
+---
+
+# 2.5. TESTIMONIOS / FAQ
+
+Incluir una sección informativa con:
+
+### Testimonios
+
+Mostrar testimonios de clientes.
+
+### Preguntas frecuentes
+
+Incluir información útil sobre:
+
+* Políticas de equipaje.
+* Abordaje presentando DNI.
+* Cambio de pasajes.
+
+Esta sección es informativa y no debe alterar el flujo de compra.
+
+---
+
+# 3. `resultados.html`
+
+## LISTADO Y SELECCIÓN DE ITINERARIOS
+
+Esta pantalla recibe los parámetros enviados desde `inicio.html`.
+
+Debe mostrar los viajes disponibles para:
+
+* origen seleccionado
+* destino seleccionado
+* fecha seleccionada
+* cantidad de pasajeros
+
+---
+
+# 3.1. BARRA DE RESUMEN SUPERIOR
+
+Mostrar un resumen de la búsqueda.
+
+Ejemplo:
+
+```text
+Lima → Cajamarca
+16/02/2026
+```
+
+Incluir la acción:
+
+```text
+Modificar Búsqueda
+```
+
+Esta acción debe permitir regresar al formulario de búsqueda para modificar los criterios.
+
+---
+
+# 3.2. FILTROS LATERALES
+
+Ubicar los filtros en el lateral izquierdo.
+
+## Filtro 1 — Horario de Salida
+
+Opciones:
+
+* Mañana
+* Tarde
+* Noche
+
+---
+
+## Filtro 2 — Tipo de Servicio
+
+Opciones:
+
+* Económico
+* Confort
+* Imperial
+
+---
+
+## Filtro 3 — Rango de Precios
+
+Permitir filtrar los resultados por precio.
+
+Los filtros deben modificar visualmente el listado sin alterar el viaje almacenado en la base de datos.
+
+---
+
+# 3.3. TARJETAS DE VIAJES DISPONIBLES
+
+Cada viaje encontrado debe representarse mediante una tarjeta.
+
+La tarjeta debe mostrar:
+
+### Tipo de Servicio
+
+Ejemplos:
+
+```text
+Económico
+Confort
+Imperial
+```
+
+### Comodidades
+
+Mostrar las comodidades correspondientes:
+
+* Wi-Fi
+* Pantalla
+* USB
+
+Estas características deben estar relacionadas con el servicio seleccionado.
+
+---
+
+### Hora de Salida
+
+Mostrar la hora exacta de salida del viaje.
+
+---
+
+### Hora de Llegada Estimada
+
+Mostrar:
+
+```text
+hora_llegada_estimada
+```
+
+La información puede:
+
+* calcularse dinámicamente, o
+* leerse del registro del viaje,
+
+según la implementación del backend.
+
+---
+
+### Duración
+
+Mostrar una duración aproximada.
+
+Ejemplo:
+
+```text
+14 hrs aprox.
+```
+
+---
+
+### Asientos Disponibles
+
+Mostrar la cantidad de asientos libres disponibles para ese viaje.
+
+La disponibilidad debe corresponder a los asientos realmente no vendidos.
+
+---
+
+### Precio
+
+Mostrar:
+
+```text
+precio_base
+```
+
+en soles.
+
+Ejemplo:
+
+```text
+S/ 85.00
+```
+
+---
+
+### Acción principal
+
+Botón:
+
+```text
+VER ASIENTOS / SELECCIONAR
+```
+
+Al seleccionar un viaje, continuar hacia:
+
+```text
+compra-pasaje.html
+```
+
+manteniendo el viaje seleccionado.
+
+---
+
+# 4. `compra-pasaje.html`
+
+## MAPA DE ASIENTOS + DATOS DEL PASAJERO + COMPROBANTE + PAGO
+
+Esta es la pantalla principal del proceso de compra.
+
+Debe concentrar en una misma vista:
+
+1. Selección de asiento.
+2. Datos del pasajero.
+3. Datos de facturación/comprobante.
+4. Método de pago.
+5. Resumen económico.
+6. Finalización de la reserva.
+
+No dividir estas funcionalidades en nuevas pantallas.
+
+---
+
+# 4.1. MAPA / CROQUIS INTERACTIVO DEL BUS
+
+Representar visualmente la distribución de asientos.
+
+Si el bus tiene más de un piso, mostrar:
+
+```text
+PISO 1
+PISO 2
+```
+
+según corresponda.
+
+La distribución debe obtenerse de:
+
+```text
+asientos
+```
+
+---
+
+## Estados visuales de los asientos
+
+Utilizar:
+
+```text
+DISPONIBLE → Verde
+SELECCIONADO → Azul
+OCUPADO / VENDIDO → Rojo
+```
+
+---
+
+## Leyenda de ubicación
+
+Mostrar la ubicación correspondiente:
+
+* Ventana
+* Pasillo
+
+La información debe relacionarse con el campo de ubicación del asiento.
+
+---
+
+## Selección
+
+El cliente debe poder seleccionar los asientos disponibles.
+
+Los asientos ocupados/vendidos no deben poder seleccionarse.
+
+El sistema debe evitar seleccionar un asiento que ya fue vendido.
+
+---
+
+# 4.2. FORMULARIO DE DATOS DEL PASAJERO
+
+Después/durante la selección del asiento, mostrar los datos necesarios del pasajero.
+
+---
+
+## Tipo de Documento
+
+Desplegable con:
+
+* DNI
+* CE
+* Pasaporte
+
+---
+
+## Número de Documento
+
+Campo de identificación.
+
+Aplicar validación según el tipo de documento.
+
+Para DNI:
+
+```text
+8 dígitos
+```
+
+---
+
+## Nombres y Apellidos
+
+Solicitar:
+
+```text
+Nombres completos
+Apellidos completos
+```
+
+---
+
+## Teléfono
+
+Solicitar teléfono de contacto.
+
+---
+
+## Correo Electrónico
+
+Solicitar correo electrónico.
+
+Este dato será utilizado para el envío de:
+
+* voucher
+* ticket
+* comprobante
+
+---
+
+# 4.3. SECCIÓN DE FACTURACIÓN / COMPROBANTE
+
+Permitir seleccionar el tipo de comprobante.
+
+### Opción 1
+
+```text
+BOLETA
+```
+
+Para usuario final.
+
+### Opción 2
+
+```text
+FACTURA
+```
+
+Si selecciona factura, solicitar:
+
+```text
+RUC
+Razón Social
+```
+
+La información debe utilizarse para generar el comprobante correspondiente.
+
+---
+
+# 4.4. PASARELA DE PAGO SIMULADO
+
+El sistema debe utilizar un proceso de pago **simulado**.
+
+No implementar una pasarela bancaria real.
+
+Los métodos disponibles deben obtenerse de:
+
+```text
+metodos_pago
+```
+
+Mostrar:
+
+* Yape
+* Plin
+* Tarjeta de Crédito/Débito
+
+---
+
+## Yape / Plin
+
+Cuando el usuario seleccione Yape o Plin:
+
+Mostrar:
+
+* Código QR simulado.
+* Campo para ingresar número de operación.
+
+---
+
+## Tarjeta de Crédito/Débito
+
+Mostrar los campos correspondientes para realizar la simulación del pago.
+
+El proceso no debe conectarse a una pasarela real.
+
+---
+
+# 4.5. RESUMEN DEL PRECIO
+
+Mostrar claramente:
+
+```text
+Subtotal
+IGV (18%)
+Monto Total
+```
+
+El total debe calcularse a partir del precio del pasaje y la cantidad de pasajes seleccionados.
+
+Mostrar los valores en:
+
+```text
+S/
+```
+
+---
+
+# 4.6. FINALIZAR COMPRA
+
+Botón principal:
+
+```text
+PAGAR Y FINALIZAR RESERVA
+```
+
+Al hacer clic:
+
+1. Validar los datos del pasajero.
+2. Validar el asiento seleccionado.
+3. Validar el tipo de comprobante.
+4. Validar el método de pago.
+5. Procesar el pago simulado.
+6. Registrar la venta.
+7. Registrar el detalle de venta.
+8. Registrar el comprobante.
+9. Actualizar la disponibilidad del asiento.
+10. Generar el código de reserva.
+11. Redirigir a:
+
+```text
+confirmacion.html
+```
+
+---
+
+# 5. `confirmacion.html`
+
+## VOUCHER DE RESERVA + COMPROBANTE
+
+Esta es la pantalla final después de procesar exitosamente el pago simulado.
+
+Debe presentar toda la información necesaria para que el pasajero pueda verificar y utilizar su reserva.
+
+---
+
+# 5.1. MENSAJE DE ÉXITO
+
+Mostrar:
+
+```text
+¡Gracias por tu compra!
+Tu pasaje ha sido reservado con éxito.
+```
+
+---
+
+# 5.2. CÓDIGO DE RESERVA
+
+Mostrar un código alfanumérico único y destacado.
+
+Ejemplo:
+
+```text
+CHK-KP260210685966
+```
+
+Representa el:
+
+```text
+codigo_reserva
+```
+
+Este código debe estar asociado a la compra realizada.
+
+---
+
+# 5.3. RESUMEN OPERATIVO DEL VIAJE
+
+Mostrar:
+
+### Pasajero
+
+Nombre completo.
+
+### Documento
+
+DNI / CE / Pasaporte.
+
+### Asiento
+
+Asiento seleccionado.
+
+Ejemplo:
+
+```text
+05A
+```
+
+### Tipo de Servicio
+
+Ejemplo:
+
+```text
+Confort
+```
+
+---
+
+# 5.4. INFORMACIÓN DE EMBARQUE
+
+Mostrar:
+
+### Origen
+
+Nombre del terminal y dirección exacta.
+
+Ejemplo:
+
+```text
+Terminal Plaza Norte
+Av. Javier Prado Este N° 1155
+```
+
+### Destino
+
+Mostrar:
+
+* nombre del terminal
+* dirección de desembarque
+
+---
+
+# 5.5. FECHA Y HORA
+
+Mostrar claramente:
+
+```text
+Fecha de Salida
+Hora de Salida
+```
+
+Utilizar los datos correspondientes al viaje comprado.
+
+---
+
+# 5.6. RESUMEN TRIBUTARIO
+
+Mostrar:
+
+### Tipo de comprobante
+
+```text
+Boleta
+```
+
+o:
+
+```text
+Factura
+```
+
+### Número de comprobante
+
+Mostrar:
+
+* Serie
+* Número
+
+### Importes
+
+Mostrar:
+
+```text
+Subtotal
+IGV
+Total
+```
+
+---
+
+# 5.7. ACCIONES DEL USUARIO
+
+Mostrar los botones:
+
+```text
+DESCARGAR TICKET (PDF)
+```
+
+y:
+
+```text
+IMPRIMIR
+```
+
+El ticket debe contener la información de la reserva y del viaje.
+
+---
+
+# 5.8. CONFIRMACIÓN DE ENVÍO
+
+Mostrar un indicador visual:
+
+```text
+Se ha enviado una copia de tu ticket y boleta a tu correo electrónico.
+```
+
+La interfaz debe comunicar claramente que el proceso de compra finalizó correctamente.
+
+---
+
+# 6. FLUJO COMPLETO DEL B2C
+
+El flujo completo debe implementarse exactamente así:
+
+```text
+┌──────────────────────────────┐
+│         inicio.html          │
+│                              │
+│ Origen                       │
+│ Destino                      │
+│ Fecha de Ida                 │
+│ Fecha de Vuelta (opcional)   │
+│ Cantidad de Pasajeros        │
+│                              │
+│     BUSCAR PASAJES           │
+└──────────────┬───────────────┘
+               │
+               ▼
+┌──────────────────────────────┐
+│       resultados.html        │
+│                              │
+│ Resumen de búsqueda          │
+│ Filtros                      │
+│                              │
+│ Viajes disponibles           │
+│ ├─ Servicio                  │
+│ ├─ Horarios                 │
+│ ├─ Duración                 │
+│ ├─ Asientos disponibles     │
+│ └─ Precio                   │
+│                              │
+│ VER ASIENTOS / SELECCIONAR   │
+└──────────────┬───────────────┘
+               │
+               ▼
+┌──────────────────────────────┐
+│      compra-pasaje.html      │
+│                              │
+│ Mapa de asientos             │
+│       ↓                      │
+│ Datos del pasajero           │
+│       ↓                      │
+│ Comprobante                  │
+│       ↓                      │
+│ Método de pago simulado      │
+│       ↓                      │
+│ Subtotal / IGV / Total       │
+│                              │
+│ PAGAR Y FINALIZAR RESERVA    │
+└──────────────┬───────────────┘
+               │
+               ▼
+┌──────────────────────────────┐
+│       confirmacion.html      │
+│                              │
+│ Compra exitosa               │
+│ Código de reserva            │
+│ Datos del pasajero           │
+│ Asiento                      │
+│ Viaje                        │
+│ Comprobante                  │
+│ Subtotal / IGV / Total       │
+│                              │
+│ Descargar PDF / Imprimir     │
+└──────────────────────────────┘
+```
+
+# 7. REGLAS FUNCIONALES IMPORTANTES
+
+### Disponibilidad
+
+Los asientos vendidos no pueden volver a seleccionarse.
+
+### Reserva
+
+La selección realizada debe mantenerse durante el proceso de compra.
+
+### Venta
+
+Una compra exitosa debe generar los registros correspondientes en la base de datos.
+
+### Comprobante
+
+Debe generarse el comprobante seleccionado:
+
+```text
+Boleta
+```
+
+o:
+
+```text
+Factura
+```
+
+### Pago
+
+El pago es exclusivamente simulado.
+
+No integrar:
+
+* Niubiz
+* Izipay
+* Stripe
+* PayPal
+* APIs bancarias
+* ninguna pasarela real
+
+### Cliente registrado / invitado
+
+El flujo debe permitir la compra para:
+
+* cliente registrado
+* cliente invitado
+
+manteniendo el registro correspondiente del pasajero.
+
+### Confirmación
+
+Después de finalizar correctamente la compra, el usuario debe terminar en:
+
+```text
+confirmacion.html
+```
+
+No redirigir directamente al login ni a otra pantalla.
+
+# 8. RESULTADO ESPERADO
+
+Implementar el módulo B2C como un flujo de compra completo, coherente y conectado con la base de datos:
+
+```text
+BUSCAR
+   ↓
+CONSULTAR VIAJES
+   ↓
+SELECCIONAR VIAJE
+   ↓
+SELECCIONAR ASIENTO
+   ↓
+REGISTRAR PASAJERO
+   ↓
+SELECCIONAR COMPROBANTE
+   ↓
+PAGO SIMULADO
+   ↓
+REGISTRAR VENTA
+   ↓
+GENERAR COMPROBANTE
+   ↓
+GENERAR CÓDIGO DE RESERVA
+   ↓
+MOSTRAR CONFIRMACIÓN
+```
+
+**No alterar este flujo ni incorporar pasos adicionales que modifiquen la experiencia descrita.**

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: layout('terminales', 'Gestión de Terminales')}">
+<body>
+<div th:fragment="content">
+
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">Gestión de Terminales</h1>
+            <p class="page-subtitle">Sedes terrestres, agencias de embarque y puntos de venta</p>
+        </div>
+        <button type="button" class="btn-chaski-navy" data-bs-toggle="modal" data-bs-target="#modalTerminal">
+            <i class="bi bi-plus-lg"></i> Registrar Terminal
+        </button>
+    </div>
+
+    <div th:replace="~{fragments/componentes :: alerta}"></div>
+
+    <div th:replace="~{fragments/componentes :: buscador('/admin/terminales', ${q})}"></div>
+
+    <div class="chaski-table-card">
+        <div class="table-responsive">
+            <table class="chaski-table">
+                <thead>
+                    <tr>
+                        <th style="width: 80px;">ID</th>
+                        <th>Nombre del Terminal</th>
+                        <th>Ciudad / Sede</th>
+                        <th>Dirección Física</th>
+                        <th>Estado</th>
+                        <th class="text-center" style="width: 110px;">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="t : ${terminales}">
+                        <td class="fw-semibold text-secondary" th:text="${t.id}">1</td>
+                        <td><span class="fw-bold text-dark" th:text="${t.nombreTerminal}">Terminal Plaza Norte</span></td>
+                        <td><span class="badge-chaski-confort" th:text="${t.ciudad}">Lima</span></td>
+                        <td class="text-muted" th:text="${t.direccion}">Av. Túpac Amaru 3900</td>
+                        <td>
+                            <span th:class="${t.estado} ? 'badge-estado-activo' : 'badge-estado-inactivo'"
+                                  th:text="${t.estado} ? 'Activo' : 'Inactivo'">Activo</span>
+                        </td>
+                        <td class="text-center">
+                            <div th:replace="~{fragments/componentes :: acciones('/admin/terminales', ${t.id}, '¿Eliminar esta terminal?')}"></div>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(terminales)}">
+                        <td colspan="6" class="text-center py-4 text-muted">No hay terminales registradas.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div th:replace="~{fragments/componentes :: tablaFooter(${terminales.size()}, 'terminales')}"></div>
+    </div>
+
+    <!-- MODAL REGISTRAR / EDITAR TERMINAL -->
+    <div class="modal fade" id="modalTerminal" tabindex="-1" aria-hidden="true" th:classappend="${editando} ? 'show d-block'">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg rounded-4">
+                <div th:replace="~{fragments/componentes :: modalHeader('Registrar Nueva Terminal', 'Editar Terminal', '/admin/terminales')}"></div>
+                <form th:action="@{/admin/terminales/guardar}" th:object="${terminal}" method="post">
+                    <div class="modal-body p-4">
+                        <input type="hidden" th:field="*{id}">
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Nombre del Terminal</label>
+                            <input type="text" class="form-control" th:field="*{nombreTerminal}" placeholder="Ej: Terminal Terrestre Piura" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Ciudad / Departamento</label>
+                            <input type="text" class="form-control" th:field="*{ciudad}" placeholder="Ej: Piura" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Dirección Física</label>
+                            <input type="text" class="form-control" th:field="*{direccion}" placeholder="Av. Principal 123" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Estado de la Sede</label>
+                            <select class="form-select" th:field="*{estado}">
+                                <option th:value="true">Activa</option>
+                                <option th:value="false">Inactiva</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div th:replace="~{fragments/componentes :: modalFooter('/admin/terminales', 'Guardar Terminal')}"></div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div th:if="${editando}" class="modal-backdrop fade show"></div>
+
+</div>
+</body>
+</html>

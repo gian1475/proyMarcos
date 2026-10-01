@@ -1,0 +1,1346 @@
+# SISTEMA WEB LOS CHASKIS
+
+## Especificación funcional para implementación en Antigravity IDE
+
+### 1. CONTEXTO GENERAL
+
+Implementar los módulos internos del sistema web:
+
+* **MÓDULO 1:** Administrador General (`ROLE_ADMIN`)
+* **MÓDULO 2:** Supervisor de Terminal / Embarque (`ROLE_SUPERVISOR`)
+
+El sistema corresponde a **LOS CHASKIS: Sistema Web Integral de Gestión Operativa y Venta de Pasajes Interprovinciales**.
+
+### REGLAS GENERALES DE IMPLEMENTACIÓN
+
+* Mantener estrictamente el flujo funcional descrito.
+* No eliminar funcionalidades.
+* No agregar módulos, procesos o estados que no estén especificados.
+* Respetar los nombres de tablas, campos y relaciones indicados.
+* Implementar la interfaz con diseño institucional y profesional.
+* Utilizar **Spring Boot + Spring Security + MySQL** en backend.
+* Utilizar **HTML + JavaScript + Bootstrap 5** en frontend.
+* Utilizar **Thymeleaf** para las vistas del Backoffice cuando corresponda.
+* Utilizar **Chart.js** para los gráficos.
+* Aplicar control de acceso mediante roles:
+
+  * `ROLE_ADMIN`
+  * `ROLE_SUPERVISOR`
+* Las operaciones que modifican información deben persistirse en MySQL.
+* Validar formularios tanto en frontend como en backend.
+* Mantener una estructura de código organizada y escalable.
+
+---
+
+# MÓDULO 1 — ADMINISTRADOR GENERAL
+
+**Rol:** `ROLE_ADMIN`
+
+El Administrador General representa el Backoffice corporativo del sistema.
+
+Desde este módulo se gestionan:
+
+1. Autenticación y sesión.
+2. Dashboard y reportes gerenciales.
+3. Flota de buses.
+4. Rutas e itinerarios.
+5. Programación de viajes.
+6. Usuarios y accesos.
+
+---
+
+## 1.1. AUTENTICACIÓN Y CONTROL DE SESIÓN
+
+### Vista
+
+`login.html`
+
+### Objetivo
+
+Permitir que un usuario con rol administrativo ingrese al Backoffice.
+
+### Interfaz
+
+Crear un formulario institucional centrado para LOS CHASKIS.
+
+### Campos
+
+| Campo              | Tipo     |
+| ------------------ | -------- |
+| Correo Electrónico | Email    |
+| Contraseña         | Password |
+
+### Validación
+
+La autenticación debe consultar la tabla:
+
+`usuarios`
+
+Validar:
+
+```text
+estado = 1
+```
+
+y verificar que el usuario tenga:
+
+```text
+id_rol → ROLE_ADMIN
+```
+
+La contraseña debe ser validada mediante **Spring Security**.
+
+### Flujo exitoso
+
+Después de autenticarse correctamente:
+
+```text
+/login
+   ↓
+/admin/dashboard
+```
+
+### Seguridad
+
+Las rutas `/admin/**` deben estar protegidas para:
+
+```text
+ROLE_ADMIN
+```
+
+Un usuario sin permisos no debe poder acceder directamente a las vistas administrativas.
+
+---
+
+# 1.2. DASHBOARD PRINCIPAL / REPORTES GERENCIALES
+
+### Vista
+
+`admin/dashboard.html`
+
+### Objetivo
+
+Mostrar una vista consolidada para la toma de decisiones administrativas y estratégicas.
+
+Utilizar:
+
+**Chart.js**
+
+---
+
+## 1.2.1. KPIs PRINCIPALES
+
+Mostrar cuatro tarjetas superiores.
+
+### KPI 1 — Ingresos Totales
+
+Mostrar:
+
+```text
+Ingresos Totales
+S/ XXX,XXX.XX
+```
+
+### Cálculo
+
+Sumar:
+
+```text
+ventas.monto_total
+```
+
+considerando únicamente las ventas aprobadas.
+
+---
+
+### KPI 2 — Total Pasajes Vendidos
+
+Mostrar:
+
+```text
+Total Pasajes Vendidos
+XXXX
+```
+
+### Cálculo
+
+Contar los registros existentes en:
+
+```text
+detalle_venta
+```
+
+---
+
+### KPI 3 — Tasa de Ocupación Promedio
+
+Mostrar:
+
+```text
+Tasa de Ocupación Promedio
+XX %
+```
+
+### Cálculo
+
+Calcular el porcentaje de:
+
+```text
+asientos vendidos
+------------------ × 100
+capacidad total
+```
+
+considerando los buses programados.
+
+---
+
+### KPI 4 — Ruta Más Vendida
+
+Mostrar:
+
+```text
+Ruta Más Vendida
+ORIGEN → DESTINO
+```
+
+### Cálculo
+
+Identificar la combinación origen-destino con mayor volumen de transacciones en los viajes.
+
+---
+
+# 1.2.2. GRÁFICOS ANALÍTICOS
+
+## Gráfico 1 — Ventas por Método de Pago
+
+### Tipo
+
+Gráfico de barras.
+
+### Título
+
+```text
+Ventas por Método de Pago
+```
+
+### Datos
+
+Comparar la recaudación por:
+
+* Yape
+* Plin
+* Tarjeta de Crédito/Débito
+
+### Fuente de datos
+
+Relacionar:
+
+```text
+ventas.monto_total
+        ↓
+metodos_pago.nombre_metodo
+```
+
+El gráfico debe mostrar claramente el monto recaudado por cada método.
+
+---
+
+## Gráfico 2 — Distribución de Comprobantes
+
+### Tipo
+
+Gráfico circular / Doughnut.
+
+### Título
+
+```text
+Distribución de Comprobantes
+```
+
+### Datos
+
+Mostrar:
+
+* Boletas
+* Facturas
+
+Mostrar tanto:
+
+* cantidad
+* porcentaje
+
+### Fuente
+
+Consultar:
+
+```text
+comprobantes
+```
+
+Agrupar mediante:
+
+```text
+id_tipo_comprobante
+```
+
+relacionado con:
+
+```text
+tipo_comprobante
+```
+
+Tipos:
+
+```text
+03 → Boleta
+01 → Factura
+```
+
+---
+
+# 1.3. GESTIÓN DE FLOTA DE BUSES
+
+## Vistas
+
+```text
+admin/bus-listado.html
+admin/bus-form.html
+```
+
+### Objetivo
+
+Implementar el mantenimiento CRUD de las unidades de transporte.
+
+---
+
+# 1.3.1. LISTADO DE BUSES
+
+### Vista
+
+`bus-listado.html`
+
+### Barra superior
+
+Incluir:
+
+* título del módulo
+* campo de búsqueda por placa
+* botón principal:
+
+```text
++ Registrar Nuevo Bus
+```
+
+---
+
+### Tabla
+
+Columnas:
+
+| Columna              |
+| -------------------- |
+| ID Bus               |
+| Placa                |
+| Modelo               |
+| Tipo de Servicio     |
+| Capacidad (Asientos) |
+| Estado               |
+| Acciones             |
+
+### Tipo de Servicio
+
+Mostrar mediante badges:
+
+* Económico
+* Confort
+* Imperial
+
+### Estado
+
+Mostrar:
+
+* ACTIVO
+* MANTENIMIENTO
+* INACTIVO
+
+### Acciones
+
+Cada registro debe permitir:
+
+```text
+Editar
+Cambiar Estado
+```
+
+### Base de datos
+
+Consultar:
+
+```text
+buses
+```
+
+realizando `JOIN` con:
+
+```text
+servicio
+```
+
+---
+
+# 1.3.2. FORMULARIO DE BUS
+
+### Vista
+
+`bus-form.html`
+
+Utilizar el mismo formulario para:
+
+* registrar
+* editar
+
+### Campos
+
+#### Placa
+
+```text
+Tipo: texto
+Ejemplo: CHK-201
+Restricción: UNIQUE
+```
+
+Aplicar máscara/formato para placas.
+
+---
+
+#### Modelo
+
+```text
+Tipo: texto
+Ejemplo: Marcopolo G7 1200
+```
+
+---
+
+#### Tipo de Servicio
+
+Campo:
+
+```text
+<select>
+```
+
+Debe obtener sus opciones desde:
+
+```text
+servicio
+```
+
+En Thymeleaf utilizar:
+
+```text
+th:select
+```
+
+---
+
+#### Capacidad de Asientos
+
+```text
+Tipo: número entero
+Ejemplos: 32 / 40
+```
+
+---
+
+#### Estado del Bus
+
+Opciones:
+
+```text
+ACTIVO
+MANTENIMIENTO
+INACTIVO
+```
+
+---
+
+## Persistencia
+
+Al guardar:
+
+```text
+Formulario
+   ↓
+Backend Spring Boot
+   ↓
+Tabla buses
+```
+
+### Regla especial al crear un bus
+
+Cuando se registre una nueva unidad:
+
+1. Guardar el bus.
+2. Obtener su capacidad.
+3. Generar automáticamente los registros correspondientes en `asientos`.
+4. Respetar el piso configurado.
+5. Asociar los asientos al bus correspondiente.
+
+Ejemplo:
+
+```text
+Capacidad = 32
+
+→ generar automáticamente 32 registros en asientos
+```
+
+---
+
+# 1.4. RUTAS, ITINERARIOS Y PROGRAMACIÓN DE VIAJES
+
+### Vista principal
+
+`admin/programacion-viajes.html`
+
+### Objetivo
+
+Permitir al administrador construir y administrar la oferta comercial de transporte.
+
+---
+
+# 1.4.1. LISTADO DE ITINERARIOS
+
+### Filtros
+
+Permitir filtrar por:
+
+* Sede/Terminal de Origen
+* Rango de Fechas
+
+---
+
+### Tabla
+
+Columnas:
+
+| Columna                 |
+| ----------------------- |
+| ID Viaje                |
+| Ruta (Origen - Destino) |
+| Bus Asignado            |
+| Fecha de Salida         |
+| Hora de Salida          |
+| Precio del Pasaje (S/)  |
+| Estado del Viaje        |
+| Acciones                |
+
+### Bus asignado
+
+Mostrar:
+
+```text
+Placa
+```
+
+### Estado del viaje
+
+Mostrar:
+
+```text
+PROGRAMADO
+EN RUTA
+FINALIZADO
+CANCELADO
+```
+
+### Acciones
+
+```text
+Editar
+Cancelar
+```
+
+### Relaciones
+
+Consultar:
+
+```text
+viajes
+   ↓
+rutas
+   ↓
+terminales
+```
+
+y relacionar además:
+
+```text
+viajes
+   ↓
+buses
+```
+
+y:
+
+```text
+viajes
+   ↓
+choferes
+```
+
+---
+
+# 1.4.2. FORMULARIO "PROGRAMAR SALIDA"
+
+El formulario puede implementarse como:
+
+* Modal
+* Vista independiente
+
+Debe permitir registrar una nueva salida.
+
+---
+
+## Campo 1 — Ruta
+
+Desplegable.
+
+Obtener las rutas desde:
+
+```text
+rutas
+```
+
+Mostrar concatenación:
+
+```text
+terminal_origen → destino
+```
+
+---
+
+## Campo 2 — Bus Asignado
+
+Desplegable.
+
+Mostrar únicamente buses cuyo estado sea:
+
+```text
+estado_bus = 'ACTIVO'
+```
+
+---
+
+## Campo 3 — Chofer Principal
+
+Desplegable.
+
+Consultar:
+
+```text
+choferes
+```
+
+Mostrar únicamente choferes activos.
+
+---
+
+## Campo 4 — Fecha de Salida
+
+```text
+DATE
+```
+
+---
+
+## Campo 5 — Hora de Salida
+
+```text
+TIME
+```
+
+---
+
+## Campo 6 — Llegada Estimada
+
+Este dato debe calcularse automáticamente en el backend.
+
+La ruta contiene:
+
+```text
+duracion_estimada
+```
+
+El backend Spring Boot debe sumar:
+
+```text
+fecha_salida
++
+hora_salida
++
+duracion_estimada
+```
+
+para obtener:
+
+```text
+fecha_llegada_estimada
+hora_llegada_estimada
+```
+
+No solicitar manualmente estos valores al usuario.
+
+---
+
+## Campo 7 — Precio Base
+
+```text
+DECIMAL(10,2)
+```
+
+Mostrar en soles:
+
+```text
+S/
+```
+
+---
+
+# 1.5. GESTIÓN DE USUARIOS Y ACCESOS
+
+### Vista
+
+`admin/usuarios-listado.html`
+
+### Objetivo
+
+Administrar las credenciales y perfiles del personal interno.
+
+---
+
+## Tabla
+
+Columnas:
+
+| Columna             |
+| ------------------- |
+| ID                  |
+| Nombres y Apellidos |
+| Correo Electrónico  |
+| Rol                 |
+| Estado              |
+| Acciones            |
+
+### Roles disponibles
+
+```text
+Administrador
+Supervisor
+```
+
+### Estados
+
+```text
+Activo
+Inactivo
+```
+
+### Acciones
+
+Permitir las acciones correspondientes de mantenimiento del usuario.
+
+---
+
+## Registro de usuario
+
+El formulario debe permitir:
+
+1. Registrar datos personales.
+2. Registrar correo.
+3. Asignar rol.
+4. Registrar contraseña.
+5. Establecer estado.
+
+### Rol
+
+El `id_rol` debe obtenerse desde:
+
+```text
+roles
+```
+
+### Contraseña
+
+Nunca almacenar la contraseña en texto plano.
+
+Utilizar:
+
+```text
+Spring Security PasswordEncoder
+```
+
+para almacenar la contraseña cifrada.
+
+---
+
+# MÓDULO 2 — SUPERVISOR DE TERMINAL / EMBARQUE
+
+**Rol:** `ROLE_SUPERVISOR`
+
+Este módulo está orientado a la operación en plataforma dentro de la terminal.
+
+### Objetivo principal
+
+Controlar el embarque de pasajeros y registrar el abordaje en tiempo real.
+
+Corresponde al:
+
+```text
+CU-03: Control de Abordaje
+```
+
+El supervisor debe poder:
+
+1. Buscar el viaje/bus.
+2. Visualizar la información de la unidad.
+3. Revisar la ocupación.
+4. Visualizar el manifiesto.
+5. Registrar pasajeros que abordaron.
+6. Registrar pasajeros ausentes.
+7. Visualizar y gestionar los asientos.
+8. Iniciar el viaje.
+9. Finalizar el viaje.
+
+---
+
+# 2.1. PANEL DE CONTROL DE EMBARQUE
+
+### Vista
+
+`supervisor/embarque.html`
+
+La pantalla debe dividirse visualmente en **tres bloques funcionales principales**.
+
+---
+
+# BLOQUE A — BUSCADOR Y FICHA DEL BUS
+
+## Buscador rápido
+
+Permitir búsqueda mediante:
+
+* Placa del Bus
+* Horario de Salida
+
+---
+
+## Ficha "Bus Seleccionado"
+
+Una vez seleccionado el viaje, mostrar:
+
+### Información del bus
+
+* Fotografía de la unidad
+* Placa
+* Tipo de Servicio
+* Capacidad
+
+### Información del viaje
+
+* Ruta
+* Fecha
+* Hora de salida
+
+### Información del chofer
+
+* Nombre
+* Licencia
+
+Obtener el chofer mediante:
+
+```text
+viajes.id_chofer_principal
+        ↓
+choferes
+```
+
+---
+
+## Controles operativos
+
+Mostrar:
+
+```text
+Autorizar Salida / Iniciar Viaje
+```
+
+Al utilizar esta acción:
+
+```text
+estado_viaje = 'EN RUTA'
+```
+
+También mostrar:
+
+```text
+Finalizar Viaje
+```
+
+---
+
+# BLOQUE B — INDICADOR DE OCUPACIÓN
+
+Ubicar en la zona superior derecha.
+
+### Gráfico
+
+Utilizar:
+
+**Chart.js — Doughnut Chart**
+
+Representar visualmente la ocupación del bus.
+
+---
+
+## Contadores
+
+Mostrar:
+
+```text
+Asientos Totales
+32
+```
+
+```text
+Ocupados / Vendidos
+26
+```
+
+```text
+Abordó
+21
+```
+
+```text
+Ausente
+2
+```
+
+```text
+Pendientes por Abordar
+5
+```
+
+### Estados visuales
+
+```text
+Abordó → Verde
+Ausente → Rojo
+Pendiente → Amarillo
+```
+
+---
+
+# BLOQUE C — MANIFIESTO DE PASAJEROS
+
+### Título
+
+```text
+Manifiesto de Pasajeros
+```
+
+### Herramienta
+
+Incluir botón:
+
+```text
+Escanear Ticket / DNI
+```
+
+Debe servir como acceso rápido para identificar al pasajero.
+
+---
+
+## Tabla de pasajeros
+
+Columnas:
+
+| Columna             |
+| ------------------- |
+| N°                  |
+| Nombre del Pasajero |
+| DNI / Documento     |
+| Asiento             |
+| Estado              |
+| Hora de Abordaje    |
+| Acciones            |
+
+### Asiento
+
+Ejemplo:
+
+```text
+05A
+```
+
+### Estados
+
+```text
+PENDIENTE
+ABORDO
+AUSENTE
+```
+
+---
+
+# ACCIONES DE EMBARQUE
+
+## Acción "Abordó"
+
+Botón verde:
+
+```text
+✓ Abordó
+```
+
+Al hacer clic:
+
+1. Cambiar:
+
+```text
+estado_abordaje = 'ABORDO'
+```
+
+2. Actualizar:
+
+```text
+fecha_abordaje
+```
+
+con la fecha/hora actual.
+
+3. Registrar:
+
+```text
+id_usuario_supervisor
+```
+
+correspondiente al supervisor autenticado.
+
+4. Persistir los cambios en:
+
+```text
+detalle_venta
+```
+
+5. Actualizar inmediatamente la interfaz.
+
+---
+
+## Acción "Ausente"
+
+Botón rojo:
+
+```text
+Ausente
+```
+
+Al hacer clic:
+
+```text
+estado_abordaje = 'AUSENTE'
+```
+
+Persistir el cambio en la base de datos y actualizar inmediatamente los indicadores y el manifiesto.
+
+---
+
+# 2.2. PLANO INTERACTIVO DE ASIENTOS
+
+### Vista
+
+`supervisor/plano-asientos.html`
+
+### Objetivo
+
+Mostrar gráficamente la distribución interna del bus y permitir controlar el estado de cada asiento.
+
+---
+
+# 2.2.1. CABECERA
+
+Mostrar:
+
+* Placa
+* Tipo de Servicio
+* Capacidad
+
+---
+
+## Leyenda
+
+Utilizar los siguientes estados visuales:
+
+```text
+VERDE   → Abordó
+AMARILLO → Pendiente
+ROJO    → Ausente
+GRIS/BLANCO → Libre / No Vendido
+```
+
+---
+
+# 2.2.2. MATRIZ GRÁFICA DEL BUS
+
+Construir visualmente los asientos agrupados por:
+
+* filas
+* pasillo
+* ventanas
+* piso
+
+La distribución debe representar la configuración real registrada para el bus.
+
+### Fuente de datos
+
+Consultar:
+
+```text
+asientos
+```
+
+utilizando información como:
+
+```text
+numero_asiento
+ubicacion
+piso
+```
+
+Cruzar la información con:
+
+```text
+detalle_venta
+```
+
+para determinar el estado actual de cada asiento.
+
+---
+
+# 2.2.3. POPOVER / TOOLTIP DE ASIENTO
+
+Cuando el supervisor haga clic sobre un asiento vendido, por ejemplo:
+
+```text
+11A
+```
+
+mostrar una tarjeta flotante contextual.
+
+### Información
+
+Mostrar:
+
+```text
+Nombre del Pasajero
+DNI / Documento
+Asiento Asignado
+```
+
+---
+
+## Acciones
+
+Incluir dos botones:
+
+```text
+✓ Abordó
+```
+
+y:
+
+```text
+✖ Ausente
+```
+
+Las acciones deben actualizar directamente el registro correspondiente en la base de datos sin abandonar el plano de asientos.
+
+Después de realizar la acción:
+
+1. Actualizar el estado visual del asiento.
+2. Actualizar los contadores.
+3. Actualizar el manifiesto.
+4. Cerrar o actualizar el popover.
+5. Mantener al supervisor dentro del plano de asientos.
+
+---
+
+# REGLAS DE SEGURIDAD Y ACCESO
+
+Implementar autorización mediante Spring Security.
+
+### Administrador
+
+```text
+ROLE_ADMIN
+```
+
+Puede acceder a:
+
+```text
+/admin/**
+```
+
+### Supervisor
+
+```text
+ROLE_SUPERVISOR
+```
+
+Puede acceder a:
+
+```text
+/supervisor/**
+```
+
+Un usuario no debe poder acceder a las funcionalidades correspondientes a otro rol.
+
+---
+
+# REGLAS DE PERSISTENCIA
+
+Todas las acciones críticas deben persistirse en MySQL.
+
+Especialmente:
+
+### Bus
+
+```text
+buses
+asientos
+```
+
+### Programación
+
+```text
+viajes
+```
+
+### Usuarios
+
+```text
+usuarios
+roles
+```
+
+### Embarque
+
+```text
+detalle_venta
+```
+
+### Ventas y reportes
+
+```text
+ventas
+detalle_venta
+comprobantes
+metodos_pago
+```
+
+---
+
+# FLUJO GENERAL DEL ADMINISTRADOR
+
+```text
+LOGIN
+  ↓
+Validación Spring Security
+  ↓
+ROLE_ADMIN
+  ↓
+DASHBOARD
+  │
+  ├── Gestión de Buses
+  │     ├── Listado
+  │     ├── Registrar
+  │     ├── Editar
+  │     └── Cambiar Estado
+  │
+  ├── Programación de Viajes
+  │     ├── Listado
+  │     ├── Programar Salida
+  │     ├── Editar
+  │     └── Cancelar
+  │
+  └── Usuarios y Accesos
+        ├── Listado
+        ├── Registrar
+        └── Editar
+```
+
+---
+
+# FLUJO GENERAL DEL SUPERVISOR
+
+```text
+LOGIN
+  ↓
+Validación Spring Security
+  ↓
+ROLE_SUPERVISOR
+  ↓
+PANEL DE EMBARQUE
+  ↓
+Buscar Bus / Viaje
+  ↓
+Seleccionar Bus
+  ↓
+Visualizar información
+  │
+  ├── Ficha del Bus
+  ├── Ocupación
+  └── Manifiesto
+        │
+        ├── Abordó
+        │
+        └── Ausente
+  ↓
+PLANO DE ASIENTOS
+  ↓
+Seleccionar asiento
+  ↓
+Visualizar pasajero
+  ↓
+Abordó / Ausente
+  ↓
+Actualizar BD
+  ↓
+Actualizar interfaz en tiempo real
+```
+
+# CRITERIO FINAL DE IMPLEMENTACIÓN
+
+Construir estos dos módulos respetando **exactamente las funcionalidades, flujo, orden lógico, nombres de vistas, campos, estados, relaciones y reglas descritas anteriormente**.
+
+No sustituir funcionalidades por versiones simplificadas.
+
+No eliminar:
+
+* Dashboard.
+* KPIs.
+* Gráficos.
+* CRUD de buses.
+* Generación automática de asientos.
+* Programación de viajes.
+* Gestión de usuarios.
+* Panel de embarque.
+* Manifiesto.
+* Control de abordaje.
+* Plano interactivo de asientos.
+* Popover de pasajeros.
+* Actualización de estados.
+
+El resultado debe ser una implementación web funcional, conectada a MySQL, con autenticación y autorización mediante Spring Security, siguiendo la arquitectura y flujo especificados.

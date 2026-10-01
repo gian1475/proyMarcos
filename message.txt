@@ -1,0 +1,222 @@
+CREATE DATABASE IF NOT EXISTS los_chaskis_db DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE los_chaskis_db;
+
+CREATE TABLE IF NOT EXISTS roles (
+    id_rol       BIGINT AUTO_INCREMENT PRIMARY KEY,
+    nombre_rol   VARCHAR(20)  NOT NULL UNIQUE,
+    descripcion  VARCHAR(100)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS tipo_documento (
+    id_tipo_documento  BIGINT AUTO_INCREMENT PRIMARY KEY,
+    nombre_documento   VARCHAR(50) NOT NULL UNIQUE,
+    longitud_exacta    INT
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS servicio (
+    id_servicio  BIGINT AUTO_INCREMENT PRIMARY KEY,
+    nombre       VARCHAR(50)  NOT NULL UNIQUE,
+    descripcion  VARCHAR(255)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS metodos_pago (
+    id_metodo_pago  BIGINT AUTO_INCREMENT PRIMARY KEY,
+    nombre_metodo   VARCHAR(50) NOT NULL UNIQUE,
+    activo          TINYINT(1)  DEFAULT 1
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS tipo_comprobante (
+    id_tipo_comprobante  BIGINT AUTO_INCREMENT PRIMARY KEY,
+    nombre_tipo          VARCHAR(50) NOT NULL UNIQUE,
+    codigo_sunat         VARCHAR(10) NOT NULL UNIQUE
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS empresa_emisor (
+    id_empresa       BIGINT AUTO_INCREMENT PRIMARY KEY,
+    ruc              VARCHAR(11)  NOT NULL UNIQUE,
+    razon_social     VARCHAR(150) NOT NULL,
+    nombre_comercial VARCHAR(150),
+    direccion_fiscal VARCHAR(255) NOT NULL,
+    telefono         VARCHAR(15),
+    estado           TINYINT(1)   DEFAULT 1,
+    CONSTRAINT chk_empresa_estado CHECK (estado IN (0, 1))
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS terminales (
+    id_terminal      BIGINT AUTO_INCREMENT PRIMARY KEY,
+    nombre_terminal  VARCHAR(100) NOT NULL,
+    ciudad           VARCHAR(50)  NOT NULL,
+    direccion        VARCHAR(150) NOT NULL,
+    estado           TINYINT(1)   DEFAULT 1,
+    CONSTRAINT chk_terminal_estado CHECK (estado IN (0, 1))
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS usuarios (
+    id_usuario  BIGINT AUTO_INCREMENT PRIMARY KEY,
+    id_rol      BIGINT       NOT NULL,
+    nombres     VARCHAR(50)  NOT NULL,
+    apellidos   VARCHAR(50)  NOT NULL,
+    correo      VARCHAR(80)  NOT NULL UNIQUE,
+    contrasena  VARCHAR(255) NOT NULL,
+    estado      TINYINT(1)   DEFAULT 1,
+    CONSTRAINT chk_usuario_estado CHECK (estado IN (0, 1)),
+    FOREIGN KEY (id_rol) REFERENCES roles(id_rol)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS choferes (
+    id_chofer          BIGINT AUTO_INCREMENT PRIMARY KEY,
+    id_tipo_documento  BIGINT       NOT NULL,
+    numero_documento   VARCHAR(20)  NOT NULL UNIQUE,
+    nombres            VARCHAR(50)  NOT NULL,
+    apellidos          VARCHAR(50)  NOT NULL,
+    numero_licencia    VARCHAR(30)  NOT NULL UNIQUE,
+    estado             TINYINT(1)   DEFAULT 1,
+    CONSTRAINT chk_chofer_estado CHECK (estado IN (0, 1)),
+    FOREIGN KEY (id_tipo_documento) REFERENCES tipo_documento(id_tipo_documento)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS buses (
+    id_bus             BIGINT AUTO_INCREMENT PRIMARY KEY,
+    placa              VARCHAR(10)  NOT NULL UNIQUE,
+    modelo             VARCHAR(50),
+    id_servicio        BIGINT       NOT NULL,
+    capacidad_asientos INT          NOT NULL,
+    estado_bus         ENUM('ACTIVO','MANTENIMIENTO','INACTIVO') DEFAULT 'ACTIVO',
+    FOREIGN KEY (id_servicio) REFERENCES servicio(id_servicio)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS rutas (
+    id_ruta               BIGINT AUTO_INCREMENT PRIMARY KEY,
+    id_terminal_origen    BIGINT      NOT NULL,
+    id_terminal_destino   BIGINT      NOT NULL,
+    duracion_estimada     TIME        NOT NULL,
+    activa                TINYINT(1)  DEFAULT 1,
+    CONSTRAINT chk_terminales_distintos CHECK (id_terminal_origen <> id_terminal_destino),
+    CONSTRAINT chk_ruta_activa CHECK (activa IN (0, 1)),
+    FOREIGN KEY (id_terminal_origen)  REFERENCES terminales(id_terminal),
+    FOREIGN KEY (id_terminal_destino) REFERENCES terminales(id_terminal)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS asientos (
+    id_asiento      BIGINT AUTO_INCREMENT PRIMARY KEY,
+    id_bus          BIGINT      NOT NULL,
+    numero_asiento  VARCHAR(10) NOT NULL,
+    ubicacion       VARCHAR(20) NOT NULL,
+    piso            INT         NOT NULL,
+    CONSTRAINT uq_asiento_bus UNIQUE (id_bus, numero_asiento),
+    FOREIGN KEY (id_bus) REFERENCES buses(id_bus) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS viajes (
+    id_viaje                BIGINT AUTO_INCREMENT PRIMARY KEY,
+    id_ruta                 BIGINT        NOT NULL,
+    id_bus                  BIGINT        NOT NULL,
+    id_chofer_principal     BIGINT        NOT NULL,
+    fecha_salida            DATE          NOT NULL,
+    hora_salida             TIME          NOT NULL,
+    fecha_llegada_estimada  DATE,
+    hora_llegada_estimada   TIME,
+    precio_base             DECIMAL(10,2) NOT NULL,
+    estado_viaje            ENUM('PROGRAMADO','EN_CURSO','COMPLETADO','CANCELADO') DEFAULT 'PROGRAMADO',
+    FOREIGN KEY (id_ruta)             REFERENCES rutas(id_ruta),
+    FOREIGN KEY (id_bus)              REFERENCES buses(id_bus),
+    FOREIGN KEY (id_chofer_principal) REFERENCES choferes(id_chofer)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS pasajeros (
+    id_pasajero        BIGINT AUTO_INCREMENT PRIMARY KEY,
+    id_usuario         BIGINT      NULL,
+    id_tipo_documento  BIGINT      NOT NULL,
+    numero_documento   VARCHAR(20) NOT NULL UNIQUE,
+    nombres            VARCHAR(50) NOT NULL,
+    apellidos          VARCHAR(50) NOT NULL,
+    telefono           VARCHAR(15),
+    correo             VARCHAR(80) UNIQUE,
+    FOREIGN KEY (id_usuario)        REFERENCES usuarios(id_usuario),
+    FOREIGN KEY (id_tipo_documento) REFERENCES tipo_documento(id_tipo_documento)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS ventas (
+    id_venta              BIGINT AUTO_INCREMENT PRIMARY KEY,
+    id_viaje              BIGINT        NOT NULL,
+    id_pasajero_titular   BIGINT        NOT NULL,
+    id_metodo_pago        BIGINT        NOT NULL,
+    codigo_reserva        VARCHAR(20)   NOT NULL UNIQUE,
+    fecha_venta           TIMESTAMP     DEFAULT CURRENT_TIMESTAMP,
+    monto_total           DECIMAL(10,2) NOT NULL,
+    estado_pago           ENUM('PENDIENTE','APROBADO','RECHAZADO') DEFAULT 'APROBADO',
+    FOREIGN KEY (id_viaje)            REFERENCES viajes(id_viaje),
+    FOREIGN KEY (id_pasajero_titular) REFERENCES pasajeros(id_pasajero),
+    FOREIGN KEY (id_metodo_pago)      REFERENCES metodos_pago(id_metodo_pago)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS detalle_venta (
+    id_detalle             BIGINT AUTO_INCREMENT PRIMARY KEY,
+    id_venta               BIGINT        NOT NULL,
+    id_viaje               BIGINT        NOT NULL,
+    id_asiento             BIGINT        NOT NULL,
+    id_pasajero            BIGINT        NOT NULL,
+    precio_unitario        DECIMAL(10,2) NOT NULL,
+    estado_abordaje        ENUM('PENDIENTE','ABORDO','AUSENTE') DEFAULT 'PENDIENTE',
+    id_usuario_supervisor  BIGINT        NULL,
+    fecha_abordaje         TIMESTAMP     NULL,
+    CONSTRAINT uq_asiento_por_viaje UNIQUE (id_asiento, id_viaje),
+    FOREIGN KEY (id_venta)              REFERENCES ventas(id_venta) ON DELETE CASCADE,
+    FOREIGN KEY (id_viaje)              REFERENCES viajes(id_viaje),
+    FOREIGN KEY (id_asiento)            REFERENCES asientos(id_asiento),
+    FOREIGN KEY (id_pasajero)           REFERENCES pasajeros(id_pasajero),
+    FOREIGN KEY (id_usuario_supervisor) REFERENCES usuarios(id_usuario)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS comprobantes (
+    id_comprobante              BIGINT AUTO_INCREMENT PRIMARY KEY,
+    id_venta                    BIGINT        NOT NULL UNIQUE,
+    id_tipo_comprobante         BIGINT        NOT NULL,
+    id_empresa                  BIGINT        NOT NULL,
+    numero_serie                VARCHAR(20)   NOT NULL,
+    numero_documento_cliente    VARCHAR(20),
+    razon_social_nombres        VARCHAR(100),
+    fecha_emision               TIMESTAMP     DEFAULT CURRENT_TIMESTAMP,
+    subtotal                    DECIMAL(10,2) NOT NULL,
+    igv                         DECIMAL(10,2) NOT NULL,
+    total_pagado                DECIMAL(10,2) NOT NULL,
+    CONSTRAINT uq_serie_tipo UNIQUE (numero_serie, id_tipo_comprobante),
+    FOREIGN KEY (id_venta)           REFERENCES ventas(id_venta),
+    FOREIGN KEY (id_tipo_comprobante) REFERENCES tipo_comprobante(id_tipo_comprobante),
+    FOREIGN KEY (id_empresa)          REFERENCES empresa_emisor(id_empresa)
+) ENGINE=InnoDB;
+
+CREATE INDEX idx_viajes_fecha_salida   ON viajes(fecha_salida);
+CREATE INDEX idx_viajes_ruta           ON viajes(id_ruta);
+CREATE INDEX idx_viajes_bus            ON viajes(id_bus);
+CREATE INDEX idx_detalle_venta_asiento ON detalle_venta(id_asiento);
+CREATE INDEX idx_detalle_venta_viaje   ON detalle_venta(id_viaje);
+CREATE INDEX idx_pasajero_documento    ON pasajeros(numero_documento);
+CREATE INDEX idx_ventas_codigo_reserva ON ventas(codigo_reserva);
+
+INSERT INTO roles (nombre_rol, descripcion) VALUES
+    ('ROLE_ADMIN',      'Administrador del sistema'),
+    ('ROLE_SUPERVISOR', 'Supervisor de terminal'),
+    ('ROLE_CLIENTE',    'Cliente registrado');
+
+INSERT INTO tipo_documento (nombre_documento, longitud_exacta) VALUES
+    ('DNI',       8),
+    ('CE',        9),
+    ('Pasaporte', 12);
+
+INSERT INTO servicio (nombre, descripcion) VALUES
+    ('Económico', 'Asientos estándar reclinables 140°'),
+    ('Confort',   'Asientos semi-cama 160°, WiFi'),
+    ('Imperial',  'Asientos cama 180°, pantallas individuales, WiFi');
+
+INSERT INTO metodos_pago (nombre_metodo, activo) VALUES
+    ('Yape',    1),
+    ('Plin',    1),
+    ('Tarjeta', 1);
+
+INSERT INTO tipo_comprobante (nombre_tipo, codigo_sunat) VALUES
+    ('Boleta',  '03'),
+    ('Factura', '01');
+
+INSERT INTO empresa_emisor (ruc, razon_social, nombre_comercial, direccion_fiscal, telefono)
+VALUES ('20123456789', 'Transportes Los Chaskis S.A.C.', 'Los Chaskis', 'Av. Javier Prado Este 1234, Lima', '01-555-1234');

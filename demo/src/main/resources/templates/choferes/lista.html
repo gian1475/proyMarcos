@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: layout('choferes', 'Usuarios y Accesos')}">
+<body>
+<div th:fragment="content">
+
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">Usuarios y Accesos</h1>
+            <p class="page-subtitle">Administración de colaboradores, supervisores y conductores</p>
+        </div>
+        <button type="button" class="btn-chaski-navy" data-bs-toggle="modal" data-bs-target="#modalUsuario">
+            <i class="bi bi-plus-lg"></i> Registrar Usuario
+        </button>
+    </div>
+
+    <div th:replace="~{fragments/componentes :: alerta}"></div>
+
+    <div th:replace="~{fragments/componentes :: buscador('/admin/choferes', ${q})}"></div>
+
+    <div class="chaski-table-card">
+        <div class="table-responsive">
+            <table class="chaski-table">
+                <thead>
+                    <tr>
+                        <th style="width: 70px;">ID</th>
+                        <th>Nombres y Apellidos</th>
+                        <th>Correo Electrónico</th>
+                        <th>Rol</th>
+                        <th>Estado</th>
+                        <th class="text-center" style="width: 110px;">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="c : ${choferes}">
+                        <td class="fw-semibold text-secondary" th:text="${c.id}">1</td>
+                        <td><span class="fw-bold text-dark" th:text="${c.nombreCompleto}">Admin General</span></td>
+                        <td class="font-monospace text-secondary" th:text="${c.correoElectronico}">admin@loschaskis.com</td>
+                        <td>
+                            <span th:class="${c.rol == 'Administrador'} ? 'badge-rol-admin'
+                                         : (${c.rol == 'Supervisor'} ? 'badge-rol-supervisor' : 'badge-chaski-economico')"
+                                  th:text="${c.rol}">Supervisor</span>
+                        </td>
+                        <td>
+                            <span th:class="${c.estado} ? 'badge-estado-activo' : 'badge-estado-inactivo'"
+                                  th:text="${c.estado} ? 'Activo' : 'Inactivo'">Activo</span>
+                        </td>
+                        <td class="text-center">
+                            <div th:replace="~{fragments/componentes :: acciones('/admin/choferes', ${c.id}, '¿Está seguro de eliminar este usuario?')}"></div>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(choferes)}">
+                        <td colspan="6" class="text-center py-4 text-muted">No hay usuarios registrados.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div th:replace="~{fragments/componentes :: tablaFooter(${choferes.size()}, 'usuarios')}"></div>
+    </div>
+
+    <!-- MODAL REGISTRAR / EDITAR USUARIO -->
+    <div class="modal fade" id="modalUsuario" tabindex="-1" aria-hidden="true" th:classappend="${editando} ? 'show d-block'">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg rounded-4">
+                <div th:replace="~{fragments/componentes :: modalHeader('Registrar Nuevo Usuario', 'Editar Usuario', '/admin/choferes')}"></div>
+                <form th:action="@{/admin/choferes/guardar}" th:object="${chofer}" method="post">
+                    <div class="modal-body p-4">
+                        <input type="hidden" th:field="*{id}">
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Nombres</label>
+                                <input type="text" class="form-control" th:field="*{nombres}" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Apellidos</label>
+                                <input type="text" class="form-control" th:field="*{apellidos}" required>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Correo Electrónico</label>
+                            <input type="email" class="form-control" th:field="*{correoElectronico}" placeholder="usuario@loschaskis.com" required>
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Rol del Sistema</label>
+                                <select class="form-select" th:field="*{rol}" required>
+                                    <option value="Administrador">Administrador</option>
+                                    <option value="Supervisor">Supervisor</option>
+                                    <option value="Conductor">Conductor</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Estado de la Cuenta</label>
+                                <select class="form-select" th:field="*{estado}">
+                                    <option th:value="true">Activo</option>
+                                    <option th:value="false">Inactivo</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Tipo de Documento</label>
+                                <select class="form-select" th:field="*{tipoDocumento}">
+                                    <option value="DNI">DNI</option>
+                                    <option value="CE">Carnet de Extranjería</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">N° Documento</label>
+                                <input type="text" class="form-control" th:field="*{numeroDocumento}">
+                            </div>
+                        </div>
+                    </div>
+                    <div th:replace="~{fragments/componentes :: modalFooter('/admin/choferes', 'Guardar Usuario')}"></div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div th:if="${editando}" class="modal-backdrop fade show"></div>
+
+</div>
+</body>
+</html>

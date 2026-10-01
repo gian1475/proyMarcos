@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: layout('reporte2', 'Reportes de Estados y Rutas')}">
+<body>
+<div th:fragment="content">
+
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">Reporte Estadístico: Estados y Rutas</h1>
+            <p class="page-subtitle">Distribución porcentual de estados de viajes y rutas de mayor demanda</p>
+        </div>
+        <a th:href="@{/admin/reportes/grafico1}" class="btn-chaski-navy">
+            <i class="bi bi-bar-chart-line"></i> Ver Reporte de Flota
+        </a>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <div class="col-md-6">
+            <div class="chaski-chart-card h-100">
+                <div class="chart-card-header">
+                    <h2 class="chart-card-title"><i class="bi bi-pie-chart-fill text-success me-2"></i>Distribución de Viajes por Estado</h2>
+                    <span class="badge bg-light text-dark border">Tiempo Real</span>
+                </div>
+                <div class="chart-canvas-container"><canvas id="chartViajesPorEstado"></canvas></div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="chaski-chart-card h-100">
+                <div class="chart-card-header">
+                    <h2 class="chart-card-title"><i class="bi bi-signpost-split-fill text-primary me-2"></i>Viajes por Ruta</h2>
+                    <span class="badge bg-light text-dark border">Demanda</span>
+                </div>
+                <div class="chart-canvas-container"><canvas id="chartViajesPorRuta"></canvas></div>
+            </div>
+        </div>
+
+        <div class="col-12">
+            <div class="chaski-chart-card">
+                <div class="chart-card-header">
+                    <h2 class="chart-card-title"><i class="bi bi-circle-half text-warning me-2"></i>Balance Operativo General</h2>
+                    <span class="badge bg-light text-dark border">KPIs</span>
+                </div>
+                <div class="chart-canvas-container mx-auto" style="max-width: 450px; height: 300px;">
+                    <canvas id="chartDoughnut"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script th:inline="javascript">
+    document.addEventListener('DOMContentLoaded', function () {
+    const viajesPorEstado = [ /*[[${vProgramado}]]*/ 4, /*[[${vEnCurso}]]*/ 2, /*[[${vCompletado}]]*/ 2, /*[[${vCancelado}]]*/ 0 ];
+    const rutasLabels = Array.from(/*[[${rutasLabels}]]*/ []);
+    const rutasData = Array.from(/*[[${rutasData}]]*/ []);
+
+    function graficoEstados(id, tipo, extra) {
+        new Chart(document.getElementById(id), {
+            type: tipo,
+            data: {
+                labels: ['Programado', 'En Ruta', 'Finalizado', 'Cancelado'],
+                datasets: [Object.assign({
+                    data: viajesPorEstado,
+                    backgroundColor: ['#0D1B2A', '#16a34a', '#8C8C8C', '#dc2626'],
+                    borderColor: '#ffffff'
+                }, extra)]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom', labels: { padding: 14, font: { family: 'Inter', weight: 600 } } }
+                }
+            }
+        });
+    }
+
+    graficoEstados('chartViajesPorEstado', 'pie', { borderWidth: 2, hoverOffset: 8 });
+    graficoEstados('chartDoughnut', 'doughnut', { borderWidth: 3, cutout: '65%' });
+
+    new Chart(document.getElementById('chartViajesPorRuta'), {
+        type: 'bar',
+        data: {
+            labels: rutasLabels,
+            datasets: [{ label: 'Salidas Programadas', data: rutasData, backgroundColor: '#D4AF37', borderRadius: 6, barThickness: 18 }]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { beginAtZero: true, grid: { color: '#EDEBE6' }, ticks: { stepSize: 1 } },
+                y: { grid: { display: false } }
+            }
+        }
+    });
+    });
+</script>
+</div>
+</body>
+</html>

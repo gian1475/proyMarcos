@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!-- ============================ BACKOFFICE ============================ -->
+
+<!-- Mensaje de éxito tras guardar / eliminar -->
+<div th:fragment="alerta" th:if="${msgExito}" class="alert alert-success alert-dismissible fade show border-0 shadow-sm" role="alert">
+    <i class="bi bi-check-circle-fill me-2 text-success"></i><span th:text="${msgExito}"></span>
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+
+<!-- Buscador de cada listado (GET ?q=) -->
+<form th:fragment="buscador(base, q)" th:action="@{${base}}" method="get" class="d-flex gap-2 mb-3">
+    <div class="input-group" style="max-width: 420px;">
+        <span class="input-group-text bg-white text-muted"><i class="bi bi-search"></i></span>
+        <input type="text" name="q" th:value="${q}" class="form-control" placeholder="Buscar...">
+    </div>
+    <button type="submit" class="btn-chaski-navy py-2">Buscar</button>
+    <a th:if="${q != null and !#strings.isEmpty(q)}" th:href="@{${base}}" class="btn btn-outline-secondary d-flex align-items-center">Limpiar</a>
+</form>
+
+<!-- Pie de tabla con conteo -->
+<div th:fragment="tablaFooter(total, entidad)" class="chaski-table-footer">
+    <div class="table-footer-text" th:text="|Mostrando 1 a ${total} de ${total} ${entidad}|">Mostrando registros</div>
+    <div class="table-pagination">
+        <button class="page-btn"><i class="bi bi-chevron-left"></i></button>
+        <button class="page-btn active">1</button>
+        <button class="page-btn"><i class="bi bi-chevron-right"></i></button>
+    </div>
+</div>
+
+<!-- Botones Editar / Eliminar de cada fila -->
+<div th:fragment="acciones(base, id, confirmacion)" class="action-btn-group justify-content-center">
+    <a th:href="@{${base + '/editar/' + id}}" class="btn-icon-action btn-icon-edit" title="Editar">
+        <i class="bi bi-pencil"></i>
+    </a>
+    <a th:href="@{${base + '/eliminar/' + id}}" th:data-confirm="${confirmacion}"
+       class="btn-icon-action btn-icon-delete" title="Eliminar">
+        <i class="bi bi-trash"></i>
+    </a>
+</div>
+
+<!-- Cabecera del modal de registro / edición -->
+<div th:fragment="modalHeader(tituloNuevo, tituloEditar, volver)" class="modal-header bg-dark text-white border-0 py-3">
+    <h5 class="modal-title fw-bold" th:text="${editando} ? ${tituloEditar} : ${tituloNuevo}">Registrar</h5>
+    <a th:if="${editando}" th:href="@{${volver}}" class="btn-close btn-close-white"></a>
+    <button th:unless="${editando}" type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+</div>
+
+<!-- Pie del modal de registro / edición -->
+<div th:fragment="modalFooter(volver, textoGuardar)" class="modal-footer border-0 pt-0 px-4 pb-4">
+    <a th:if="${editando}" th:href="@{${volver}}" class="btn btn-outline-secondary">Cancelar</a>
+    <button th:unless="${editando}" type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+    <button type="submit" class="btn-chaski-gold">
+        <i class="bi bi-check-lg"></i> <span th:text="${textoGuardar}">Guardar</span>
+    </button>
+</div>
+
+<!-- ========================== PORTAL PÚBLICO ========================== -->
+
+<header th:fragment="portalTopbar(activo)" class="portal-topbar sticky-top">
+    <a th:href="@{/}" class="brand-container">
+        <div class="brand-logo-icon"><img th:src="@{/img/favicon.png}" alt="Los Chaskis" class="brand-logo-img"></div>
+        <div class="brand-text-title fs-5">Los <span>Chaskis</span></div>
+    </a>
+
+    <ul class="portal-nav-links d-none d-md-flex">
+        <li><a th:href="@{/}" th:classappend="${activo} ? 'active'">INICIO</a></li>
+        <li><a th:href="@{/#nosotros}">NOSOTROS</a></li>
+        <li><a th:href="@{/#servicios}">SERVICIOS</a></li>
+        <li><a th:href="@{/#terminales}">TERMINALES</a></li>
+    </ul>
+
+    <div class="d-flex align-items-center gap-3">
+        <div class="text-white text-end small d-none d-sm-block">
+            <span class="opacity-75">Atención:</span> <strong class="text-warning">(01) 418-1111</strong>
+        </div>
+        <a th:href="@{/login}" class="btn btn-sm btn-outline-warning rounded-pill px-3 fw-bold">
+            <i class="bi bi-shield-lock me-1"></i> Intranet Admin
+        </a>
+    </div>
+</header>
+
+<footer th:fragment="portalFooter(textoDerecha)" class="portal-footer py-4 mt-5">
+    <div class="container d-flex flex-wrap justify-content-between align-items-center gap-3">
+        <div class="d-flex align-items-center gap-2">
+            <i class="bi bi-lightning-charge-fill text-warning"></i>
+            <span class="fw-bold">Los Chaskis S.A.C.</span>
+            <span class="text-muted small ms-2">&copy; 2026 Todos los derechos reservados.</span>
+        </div>
+        <span class="text-muted small" th:text="${textoDerecha}">Atención al Cliente</span>
+    </div>
+</footer>
+
+</body>
+</html>
